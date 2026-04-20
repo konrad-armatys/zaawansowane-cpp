@@ -38,6 +38,9 @@ target_link_libraries(ftxui-starter
 add_executable(test-stats src/test_stats.cpp)
 target_include_directories(test-stats PRIVATE src)
 
+add_executable(test-engine src/test_engine.cpp)
+target_include_directories(test-engine PRIVATE src)
+
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " -s ASYNCIFY")
