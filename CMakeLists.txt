@@ -32,6 +32,7 @@ add_executable(ftxui-starter
   src/HammingDistance.cpp
   src/LookAhead.cpp
   src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
 )
 target_include_directories(ftxui-starter PRIVATE include)
 
@@ -53,8 +54,36 @@ add_executable(test-heuristics
   src/HammingDistance.cpp
   src/LookAhead.cpp
   src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
 )
 target_include_directories(test-heuristics PRIVATE include)
+
+add_executable(test-moveadvisor
+  tests/test_moveadvisor.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/MoveAdvisor.cpp
+)
+target_include_directories(test-moveadvisor PRIVATE include)
+
+add_executable(debug-moveadvisor
+  tests/debug_moveadvisor.cpp
+  src/ManhattanDistance.cpp
+  src/MoveAdvisor.cpp
+)
+target_include_directories(debug-moveadvisor PRIVATE include)
+
+add_executable(debug-moveadvisor-verbose
+  tests/debug_moveadvisor_verbose.cpp
+  src/ManhattanDistance.cpp
+)
+target_include_directories(debug-moveadvisor-verbose PRIVATE include)
+
+add_executable(find-two-move-board
+  tests/find_two_move_board.cpp
+  src/ManhattanDistance.cpp
+)
+target_include_directories(find-two-move-board PRIVATE include)
 
 add_executable(example-heuristics
   examples/example_heuristics.cpp
@@ -62,8 +91,17 @@ add_executable(example-heuristics
   src/HammingDistance.cpp
   src/LookAhead.cpp
   src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
 )
 target_include_directories(example-heuristics PRIVATE include)
+
+add_executable(example-moveadvisor
+  examples/example_moveadvisor.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/MoveAdvisor.cpp
+)
+target_include_directories(example-moveadvisor PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
