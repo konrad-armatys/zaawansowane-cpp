@@ -26,7 +26,13 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
-add_executable(ftxui-starter src/main.cpp)
+add_executable(ftxui-starter
+  src/main.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+)
 target_include_directories(ftxui-starter PRIVATE include)
 
 target_link_libraries(ftxui-starter
@@ -40,6 +46,24 @@ target_include_directories(test-stats PRIVATE include)
 
 add_executable(test-engine tests/test_engine.cpp)
 target_include_directories(test-engine PRIVATE include)
+
+add_executable(test-heuristics
+  tests/test_heuristics.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+)
+target_include_directories(test-heuristics PRIVATE include)
+
+add_executable(example-heuristics
+  examples/example_heuristics.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+)
+target_include_directories(example-heuristics PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
