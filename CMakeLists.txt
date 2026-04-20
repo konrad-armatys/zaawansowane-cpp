@@ -27,7 +27,7 @@ FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
 add_executable(ftxui-starter src/main.cpp)
-target_include_directories(ftxui-starter PRIVATE src)
+target_include_directories(ftxui-starter PRIVATE include)
 
 target_link_libraries(ftxui-starter
   PRIVATE ftxui::screen
@@ -35,11 +35,11 @@ target_link_libraries(ftxui-starter
   PRIVATE ftxui::component
 )
 
-add_executable(test-stats src/test_stats.cpp)
-target_include_directories(test-stats PRIVATE src)
+add_executable(test-stats tests/test_stats.cpp)
+target_include_directories(test-stats PRIVATE include)
 
-add_executable(test-engine src/test_engine.cpp)
-target_include_directories(test-engine PRIVATE src)
+add_executable(test-engine tests/test_engine.cpp)
+target_include_directories(test-engine PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
