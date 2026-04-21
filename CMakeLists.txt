@@ -33,6 +33,7 @@ add_executable(ftxui-starter
   src/LookAhead.cpp
   src/UndoRedo.cpp
   src/MoveAdvisor.cpp
+  src/BinaryGameSaver.cpp
 )
 target_include_directories(ftxui-starter PRIVATE include)
 
@@ -114,6 +115,20 @@ add_executable(example-undoredomanager
   src/UndoRedoManager.cpp
 )
 target_include_directories(example-undoredomanager PRIVATE include)
+
+add_executable(test-gamesaver
+  tests/test_gamesaver.cpp
+  src/BinaryGameSaver.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(test-gamesaver PRIVATE include)
+
+add_executable(example-gamesaver
+  examples/example_gamesaver.cpp
+  src/BinaryGameSaver.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(example-gamesaver PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")

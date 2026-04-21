@@ -158,6 +158,30 @@ public:
     [[nodiscard]] size_t getMaxHistorySize() const noexcept {
         return maxHistorySize_;
     }
+
+    /**
+     * @brief Eksportuje stos Undo do wektora (dla celów serializacji)
+     * @return Wektor zawierający wszystkie ruchy ze stosu Undo (od najstarszego do najnowszego)
+     */
+    [[nodiscard]] std::vector<MoveData> exportUndoStack() const;
+
+    /**
+     * @brief Eksportuje stos Redo do wektora (dla celów serializacji)
+     * @return Wektor zawierający wszystkie ruchy ze stosu Redo (od najstarszego do najnowszego)
+     */
+    [[nodiscard]] std::vector<MoveData> exportRedoStack() const;
+
+    /**
+     * @brief Importuje historię do stosu Undo (dla celów deserializacji)
+     * @param moves Wektor ruchów do zaimportowania (od najstarszego do najnowszego)
+     */
+    void importUndoStack(const std::vector<MoveData>& moves);
+
+    /**
+     * @brief Importuje historię do stosu Redo (dla celów deserializacji)
+     * @param moves Wektor ruchów do zaimportowania (od najstarszego do najnowszego)
+     */
+    void importRedoStack(const std::vector<MoveData>& moves);
 };
 
 #endif

@@ -112,3 +112,56 @@ void UndoRedoManager::setMaxHistorySize(size_t maxSize) {
     limitStackSize(undoStack_);
     limitStackSize(redoStack_);
 }
+
+std::vector<MoveData> UndoRedoManager::exportUndoStack() const {
+    std::vector<MoveData> result;
+    std::stack<MoveData> tempStack = undoStack_;
+
+
+    std::vector<MoveData> reversed;
+    while (!tempStack.empty()) {
+        reversed.push_back(tempStack.top());
+        tempStack.pop();
+    }
+
+    std::reverse(reversed.begin(), reversed.end());
+    return reversed;
+}
+
+std::vector<MoveData> UndoRedoManager::exportRedoStack() const {
+    std::vector<MoveData> result;
+    std::stack<MoveData> tempStack = redoStack_;
+
+    std::vector<MoveData> reversed;
+    while (!tempStack.empty()) {
+        reversed.push_back(tempStack.top());
+        tempStack.pop();
+    }
+
+    std::reverse(reversed.begin(), reversed.end());
+    return reversed;
+}
+
+void UndoRedoManager::importUndoStack(const std::vector<MoveData>& moves) {
+
+    while (!undoStack_.empty()) {
+        undoStack_.pop();
+    }
+
+
+    for (const auto& move : moves) {
+        undoStack_.push(move);
+    }
+}
+
+void UndoRedoManager::importRedoStack(const std::vector<MoveData>& moves) {
+
+    while (!redoStack_.empty()) {
+        redoStack_.pop();
+    }
+
+
+    for (const auto& move : moves) {
+        redoStack_.push(move);
+    }
+}
