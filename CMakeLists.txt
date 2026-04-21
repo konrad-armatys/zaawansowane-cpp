@@ -35,6 +35,8 @@ add_executable(ftxui-starter
   src/MoveAdvisor.cpp
   src/BinaryGameSaver.cpp
   src/TextGameSaver.cpp
+  src/UndoRedoManager.cpp
+  src/PuzzlePresenter.cpp
 )
 target_include_directories(ftxui-starter PRIVATE include)
 
@@ -147,6 +149,15 @@ add_executable(test-textgamesaver
   src/UndoRedoManager.cpp
 )
 target_include_directories(test-textgamesaver PRIVATE include)
+
+add_executable(example-puzzlepresenter
+  examples/example_puzzlepresenter.cpp
+  src/PuzzlePresenter.cpp
+  src/BinaryGameSaver.cpp
+  src/TextGameSaver.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(example-puzzlepresenter PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")

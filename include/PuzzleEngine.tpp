@@ -19,6 +19,18 @@ PuzzleEngine<T>::PuzzleEngine(int size)
 
 template <typename T>
 requires std::copyable<T>
+PuzzleEngine<T>::PuzzleEngine(const Board<T>& board, const GameStats& stats, const T& emptyValue)
+    : board_(board),
+      stats_(stats),
+      rng_(std::random_device{}())
+{
+    auto [x, y] = findEmptyTile(emptyValue);
+    emptyX_ = x;
+    emptyY_ = y;
+}
+
+template <typename T>
+requires std::copyable<T>
 std::pair<int, int> PuzzleEngine<T>::findEmptyTile(const T& emptyValue) const {
     const int size = board_.getSize();
     for (int y = 0; y < size; ++y) {

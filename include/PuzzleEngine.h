@@ -82,6 +82,14 @@ public:
     explicit PuzzleEngine(int size);
 
     /**
+     * @brief Konstruktor odtwarzający stan gry
+     * @param board Plansza do przywrócenia
+     * @param stats Statystyki do przywrócenia
+     * @param emptyValue Wartość reprezentująca puste pole
+     */
+    PuzzleEngine(const Board<T>& board, const GameStats& stats, const T& emptyValue = T{});
+
+    /**
      * @brief Tasuje planszę generując losowy rozwiązywalny układ
      * @param emptyValue Wartość reprezentująca puste pole (zwykle 0)
      */
