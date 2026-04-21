@@ -66,6 +66,12 @@ add_executable(test-moveadvisor
 )
 target_include_directories(test-moveadvisor PRIVATE include)
 
+add_executable(test-undoredomanager
+  tests/test_undoredomanager.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(test-undoredomanager PRIVATE include)
+
 add_executable(debug-moveadvisor
   tests/debug_moveadvisor.cpp
   src/ManhattanDistance.cpp
@@ -102,6 +108,12 @@ add_executable(example-moveadvisor
   src/MoveAdvisor.cpp
 )
 target_include_directories(example-moveadvisor PRIVATE include)
+
+add_executable(example-undoredomanager
+  examples/example_undoredomanager.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(example-undoredomanager PRIVATE include)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
