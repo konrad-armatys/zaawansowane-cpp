@@ -37,6 +37,7 @@ add_executable(ftxui-starter
   src/TextGameSaver.cpp
   src/UndoRedoManager.cpp
   src/PuzzlePresenter.cpp
+  src/TuiRenderer.cpp
 )
 target_include_directories(ftxui-starter PRIVATE include)
 
@@ -150,6 +151,18 @@ add_executable(test-textgamesaver
 )
 target_include_directories(test-textgamesaver PRIVATE include)
 
+add_executable(test-tuirenderer
+  tests/test_tuirenderer.cpp
+  src/TuiRenderer.cpp
+  src/ManhattanDistance.cpp
+)
+target_include_directories(test-tuirenderer PRIVATE include)
+target_link_libraries(test-tuirenderer
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+
 add_executable(example-puzzlepresenter
   examples/example_puzzlepresenter.cpp
   src/PuzzlePresenter.cpp
@@ -158,6 +171,38 @@ add_executable(example-puzzlepresenter
   src/UndoRedoManager.cpp
 )
 target_include_directories(example-puzzlepresenter PRIVATE include)
+
+add_executable(example-tuirenderer
+  examples/example_tuirenderer.cpp
+  src/TuiRenderer.cpp
+  src/PuzzlePresenter.cpp
+  src/ManhattanDistance.cpp
+  src/BinaryGameSaver.cpp
+  src/TextGameSaver.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(example-tuirenderer PRIVATE include)
+target_link_libraries(example-tuirenderer
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+
+add_executable(example-interactive-tui
+  examples/example_interactive_tui.cpp
+  src/TuiRenderer.cpp
+  src/PuzzlePresenter.cpp
+  src/ManhattanDistance.cpp
+  src/BinaryGameSaver.cpp
+  src/TextGameSaver.cpp
+  src/UndoRedoManager.cpp
+)
+target_include_directories(example-interactive-tui PRIVATE include)
+target_link_libraries(example-interactive-tui
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")

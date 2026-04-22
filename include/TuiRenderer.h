@@ -1,0 +1,87 @@
+#ifndef TUIRENDERER_H
+#define TUIRENDERER_H
+
+#include "IPuzzleView.h"
+#include "IHeuristic.h"
+#include <memory>
+#include <string>
+#include <ftxui/component/component.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/screen.hpp>
+
+/**
+ * @brief Implementacja TUI (Text User Interface) dla gry N-Puzzle używająca FTXUI
+ *
+ * Klasa renderuje planszę gry w terminalu z kolorową stylizacją,
+ * panelem statystyk oraz obsługą dużych plansz (do 101x101).
+ */
+class TuiRenderer : public IPuzzleView {
+private:
+    std::string lastMessage_;
+    int lastMovesCount_;
+    int lastUndoCount_;
+    int lastCorrectTiles_;
+    double lastHeuristicValue_;
+    int boardSize_;
+    std::unique_ptr<IHeuristic> heuristic_;
+
+    /**
+     * @brief Tworzy element DOM dla pojedynczego kafelka
+     * @param value Wartość kafelka
+     * @param x Współrzędna x
+     * @param y Współrzędna y
+     * @param boardSize Rozmiar planszy
+     * @return Element DOM reprezentujący kafelek
+     */
+    ftxui::Element createTile(int value, int x, int y, int boardSize) const;
+
+    /**
+     * @brief Tworzy element DOM dla siatki planszy
+     * @param board Plansza do wyrenderowania
+     * @return Element DOM reprezentujący siatkę
+     */
+    ftxui::Element createGrid(const Board<int>& board) const;
+
+    /**
+     * @brief Tworzy element DOM dla panelu statystyk
+     * @return Element DOM reprezentujący panel statystyk
+     */
+    ftxui::Element createStatsPanel() const;
+
+    /**
+     * @brief Tworzy element DOM dla wiadomości
+     * @return Element DOM reprezentujący wiadomość
+     */
+    ftxui::Element createMessagePanel() const;
+
+    /**
+     * @brief Sprawdza czy kafelek jest na właściwym miejscu
+     * @param value Wartość kafelka
+     * @param x Współrzędna x
+     * @param y Współrzędna y
+     * @param boardSize Rozmiar planszy
+     * @return true jeśli kafelek jest na właściwym miejscu
+     */
+    bool isTileCorrect(int value, int x, int y, int boardSize) const;
+
+public:
+    /**
+     * @brief Konstruktor tworzący renderer TUI
+     * @param boardSize Rozmiar planszy (N x N)
+     * @param heuristic Wskaźnik do implementacji heurystyki (opcjonalny)
+     */
+    explicit TuiRenderer(int boardSize, std::unique_ptr<IHeuristic> heuristic = nullptr);
+
+    /**
+     * @brief Ustawia heurystykę do obliczania oceny planszy
+     * @param heuristic Wskaźnik do implementacji heurystyki
+     */
+    void setHeuristic(std::unique_ptr<IHeuristic> heuristic);
+
+    void render(const Board<int>& board) override;
+    void updateStats(const GameStats& stats, double heuristicValue = 0.0) override;
+    void showMessage(const std::string& message) override;
+    void refresh() override;
+};
+
+#endif
