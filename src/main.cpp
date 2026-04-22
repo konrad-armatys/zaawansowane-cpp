@@ -9,6 +9,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 /**
  * @brief Główna klasa kontrolera TUI łącząca Model z Widokiem
@@ -26,17 +28,6 @@ private:
      * @brief Aktualizuje widok po zmianie stanu gry
      */
     void refreshView() {
-        const auto& board = presenter_.getEngine().getBoard();
-        const auto& stats = presenter_.getEngine().getStats();
-
-        auto heuristic = std::make_shared<ManhattanDistance>();
-        double heuristicValue = heuristic->calculate(board);
-
-        renderer_.render(board);
-        renderer_.updateStats(stats, heuristicValue);
-        renderer_.showMessage(statusMessage_);
-        renderer_.refresh();
-
         screen_.PostEvent(ftxui::Event::Custom);
     }
 
@@ -170,12 +161,121 @@ private:
     }
 
     /**
+     * @brief Tworzy element UI z aktualnym stanem gry
+     * @return Element FTXUI do wyświetlenia
+     */
+    ftxui::Element createGameElement() {
+        const auto& board = presenter_.getEngine().getBoard();
+        const auto& stats = presenter_.getEngine().getStats();
+        auto heuristic = std::make_shared<ManhattanDistance>();
+        double heuristicValue = heuristic->calculate(board);
+
+
+        renderer_.updateStats(stats, heuristicValue);
+        renderer_.showMessage(statusMessage_);
+
+
+        ftxui::Elements rows;
+        const int size = board.getSize();
+
+        for (int y = 0; y < size; ++y) {
+            ftxui::Elements row;
+            for (int x = 0; x < size; ++x) {
+                int value = board.at(x, y);
+                ftxui::Element tile;
+
+                if (value == 0) {
+                    tile = ftxui::text("   ") | ftxui::border | ftxui::bgcolor(ftxui::Color::Black);
+                } else {
+                    std::ostringstream oss;
+                    oss << std::setw(3) << value;
+
+                    tile = ftxui::text(oss.str()) | ftxui::border;
+
+
+                    auto hintPos = renderer_.getHintPosition();
+                    if (hintPos.has_value() && hintPos->first == x && hintPos->second == y) {
+                        tile = tile | ftxui::bgcolor(ftxui::Color::Yellow) | ftxui::color(ftxui::Color::Black) | ftxui::bold;
+                    } else if (renderer_.isTileCorrect(value, x, y, size)) {
+                        tile = tile | ftxui::bgcolor(ftxui::Color::Green) | ftxui::color(ftxui::Color::Black);
+                    } else {
+                        tile = tile | ftxui::bgcolor(ftxui::Color::Blue) | ftxui::color(ftxui::Color::White);
+                    }
+                }
+
+                row.push_back(tile);
+            }
+            rows.push_back(ftxui::hbox(std::move(row)));
+        }
+
+        auto gridElement = ftxui::vbox(std::move(rows)) | ftxui::border | ftxui::borderStyled(ftxui::ROUNDED);
+
+
+        ftxui::Elements statsElements;
+        statsElements.push_back(ftxui::text("=== STATYSTYKI ===") | ftxui::bold | ftxui::color(ftxui::Color::Cyan));
+        statsElements.push_back(ftxui::separator());
+        statsElements.push_back(ftxui::hbox({
+            ftxui::text("Ruchy: ") | ftxui::bold,
+            ftxui::text(std::to_string(stats.movesCount.get())) | ftxui::color(ftxui::Color::Yellow)
+        }));
+        statsElements.push_back(ftxui::hbox({
+            ftxui::text("Cofnięcia: ") | ftxui::bold,
+            ftxui::text(std::to_string(stats.undoCount.get())) | ftxui::color(ftxui::Color::Yellow)
+        }));
+        statsElements.push_back(ftxui::hbox({
+            ftxui::text("Poprawne kafelki: ") | ftxui::bold,
+            ftxui::text(std::to_string(stats.correctTiles.get()) + " / " + std::to_string(size * size)) | ftxui::color(ftxui::Color::Green)
+        }));
+
+        std::ostringstream heurOss;
+        heurOss << std::fixed << std::setprecision(2) << heuristicValue;
+        statsElements.push_back(ftxui::hbox({
+            ftxui::text("Heurystyka: ") | ftxui::bold,
+            ftxui::text(heurOss.str()) | ftxui::color(ftxui::Color::Magenta)
+        }));
+
+        auto statsElement = ftxui::vbox(std::move(statsElements)) | ftxui::border | ftxui::borderStyled(ftxui::ROUNDED) | ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 30);
+
+
+        ftxui::Elements mainContent;
+        mainContent.push_back(ftxui::text("N-PUZZLE GAME") | ftxui::bold | ftxui::color(ftxui::Color::Cyan) | ftxui::center);
+        mainContent.push_back(ftxui::separator());
+
+        ftxui::Elements gameArea;
+        gameArea.push_back(gridElement | ftxui::flex);
+        gameArea.push_back(ftxui::separator());
+        gameArea.push_back(statsElement);
+
+        mainContent.push_back(ftxui::hbox(std::move(gameArea)));
+
+        if (!statusMessage_.empty()) {
+            mainContent.push_back(ftxui::separator());
+            mainContent.push_back(
+                ftxui::text(statusMessage_) |
+                ftxui::border |
+                ftxui::borderStyled(ftxui::ROUNDED) |
+                ftxui::bgcolor(ftxui::Color::Blue) |
+                ftxui::color(ftxui::Color::White) |
+                ftxui::bold
+            );
+        }
+
+        mainContent.push_back(ftxui::separator());
+        mainContent.push_back(
+            ftxui::text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
+            ftxui::dim | ftxui::center
+        );
+
+        return ftxui::vbox(std::move(mainContent));
+    }
+
+    /**
      * @brief Tworzy komponent FTXUI obsługujący zdarzenia klawiatury
      * @return Komponent FTXUI
      */
     ftxui::Component createComponent() {
         auto component = ftxui::Renderer([this] {
-            return ftxui::text("N-Puzzle Game");
+            return createGameElement();
         });
 
         component = ftxui::CatchEvent(component, [this](ftxui::Event event) {
@@ -296,10 +396,6 @@ public:
      * @brief Uruchamia główną pętlę gry
      */
     void run() {
-
-        refreshView();
-
-
         auto component = createComponent();
         screen_.Loop(component);
 

@@ -56,6 +56,7 @@ private:
      */
     ftxui::Element createMessagePanel() const;
 
+public:
     /**
      * @brief Sprawdza czy kafelek jest na właściwym miejscu
      * @param value Wartość kafelka
@@ -65,8 +66,6 @@ private:
      * @return true jeśli kafelek jest na właściwym miejscu
      */
     bool isTileCorrect(int value, int x, int y, int boardSize) const;
-
-public:
     /**
      * @brief Konstruktor tworzący renderer TUI
      * @param boardSize Rozmiar planszy (N x N)
@@ -91,6 +90,12 @@ public:
      * @param y Współrzędna y kafelka do podświetlenia
      */
     void setHintHighlight(std::optional<std::pair<int, int>> position);
+
+    /**
+     * @brief Zwraca pozycję podświetlonego kafelka (podpowiedź)
+     * @return Opcjonalna pozycja (x, y) lub nullopt jeśli brak podświetlenia
+     */
+    std::optional<std::pair<int, int>> getHintPosition() const { return hintPosition_; }
 };
 
 #endif
