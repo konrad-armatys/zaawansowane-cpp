@@ -45,6 +45,9 @@ private:
      * @param dir Kierunek ruchu
      */
     void handleMove(Direction dir) {
+
+        renderer_.setHintHighlight(std::nullopt);
+
         bool moved = presenter_.move(dir);
         if (moved) {
             statusMessage_ = "Ruch wykonany";
@@ -61,6 +64,7 @@ private:
      * @brief Obsługuje cofnięcie ruchu (Undo)
      */
     void handleUndo() {
+        renderer_.setHintHighlight(std::nullopt);
         bool success = presenter_.undo();
         statusMessage_ = success ? "Cofnięto ruch" : "Brak ruchów do cofnięcia";
         refreshView();
@@ -70,6 +74,7 @@ private:
      * @brief Obsługuje ponowienie ruchu (Redo)
      */
     void handleRedo() {
+        renderer_.setHintHighlight(std::nullopt);
         bool success = presenter_.redo();
         statusMessage_ = success ? "Ponowiono ruch" : "Brak ruchów do ponowienia";
         refreshView();
@@ -85,14 +90,34 @@ private:
 
         if (suggestion.has_value()) {
             const char* dirName = "";
+            int highlightX = emptyX;
+            int highlightY = emptyY;
+
+
             switch (*suggestion) {
-                case Direction::Up: dirName = "Góra"; break;
-                case Direction::Down: dirName = "Dół"; break;
-                case Direction::Left: dirName = "Lewo"; break;
-                case Direction::Right: dirName = "Prawo"; break;
+                case Direction::Up:
+                    dirName = "Góra";
+                    highlightY = emptyY - 1;
+                    break;
+                case Direction::Down:
+                    dirName = "Dół";
+                    highlightY = emptyY + 1;
+                    break;
+                case Direction::Left:
+                    dirName = "Lewo";
+                    highlightX = emptyX - 1;
+                    break;
+                case Direction::Right:
+                    dirName = "Prawo";
+                    highlightX = emptyX + 1;
+                    break;
             }
-            statusMessage_ = std::string("Podpowiedź: ") + dirName;
+
+
+            renderer_.setHintHighlight(std::make_pair(highlightX, highlightY));
+            statusMessage_ = std::string("Podpowiedź: ") + dirName + " ⭐";
         } else {
+            renderer_.setHintHighlight(std::nullopt);
             statusMessage_ = "Brak dostępnych podpowiedzi";
         }
         refreshView();
@@ -128,6 +153,7 @@ private:
      * @brief Obsługuje tasowanie planszy
      */
     void handleShuffle() {
+        renderer_.setHintHighlight(std::nullopt);
         presenter_.shuffle();
         statusMessage_ = "Plansza przetasowana";
         refreshView();
@@ -137,6 +163,7 @@ private:
      * @brief Obsługuje reset gry
      */
     void handleReset() {
+        renderer_.setHintHighlight(std::nullopt);
         presenter_.reset();
         statusMessage_ = "Gra zresetowana";
         refreshView();

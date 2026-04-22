@@ -5,6 +5,7 @@
 #include "IHeuristic.h"
 #include <memory>
 #include <string>
+#include <optional>
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -24,6 +25,7 @@ private:
     double lastHeuristicValue_;
     int boardSize_;
     std::unique_ptr<IHeuristic> heuristic_;
+    std::optional<std::pair<int, int>> hintPosition_;
 
     /**
      * @brief Tworzy element DOM dla pojedynczego kafelka
@@ -82,6 +84,13 @@ public:
     void updateStats(const GameStats& stats, double heuristicValue = 0.0) override;
     void showMessage(const std::string& message) override;
     void refresh() override;
+
+    /**
+     * @brief Ustawia pozycję kafelka do podświetlenia jako podpowiedź
+     * @param x Współrzędna x kafelka do podświetlenia (nullopt aby wyłączyć)
+     * @param y Współrzędna y kafelka do podświetlenia
+     */
+    void setHintHighlight(std::optional<std::pair<int, int>> position);
 };
 
 #endif

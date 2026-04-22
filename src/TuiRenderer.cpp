@@ -14,7 +14,8 @@ TuiRenderer::TuiRenderer(int boardSize, std::unique_ptr<IHeuristic> heuristic)
       lastCorrectTiles_(0),
       lastHeuristicValue_(0.0),
       boardSize_(boardSize),
-      heuristic_(std::move(heuristic)) {}
+      heuristic_(std::move(heuristic)),
+      hintPosition_(std::nullopt) {}
 
 void TuiRenderer::setHeuristic(std::unique_ptr<IHeuristic> heuristic) {
     heuristic_ = std::move(heuristic);
@@ -42,7 +43,11 @@ Element TuiRenderer::createTile(int value, int x, int y, int boardSize) const {
 
     Element tileElement = text(oss.str()) | border;
 
-    if (isTileCorrect(value, x, y, boardSize)) {
+
+    if (hintPosition_.has_value() && hintPosition_->first == x && hintPosition_->second == y) {
+        tileElement = tileElement | bgcolor(Color::Yellow) | color(Color::Black) | bold;
+    }
+    else if (isTileCorrect(value, x, y, boardSize)) {
         tileElement = tileElement | bgcolor(Color::Green) | color(Color::Black);
     } else {
         tileElement = tileElement | bgcolor(Color::Blue) | color(Color::White);
@@ -196,4 +201,8 @@ void TuiRenderer::showMessage(const std::string& message) {
 }
 
 void TuiRenderer::refresh() {
+}
+
+void TuiRenderer::setHintHighlight(std::optional<std::pair<int, int>> position) {
+    hintPosition_ = position;
 }
