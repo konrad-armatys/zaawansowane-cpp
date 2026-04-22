@@ -47,9 +47,9 @@ add_library(tui_lib STATIC
 )
 target_include_directories(tui_lib PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(tui_lib
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
+  PUBLIC ftxui::screen
+  PUBLIC ftxui::dom
+  PUBLIC ftxui::component
 )
 
 # Helper macro for FTXUI linkage
@@ -69,7 +69,6 @@ add_executable(ftxui-starter
 )
 target_include_directories(ftxui-starter PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(ftxui-starter PRIVATE tui_lib)
-link_ftxui(ftxui-starter)
 
 # --- Tests (no TUI) -----------------------------------------------------------
 add_executable(test-stats tests/test_stats.cpp)
@@ -103,7 +102,6 @@ add_test(NAME TestTextGameSaver COMMAND test-textgamesaver)
 add_executable(test-tuirenderer tests/test_tuirenderer.cpp $<TARGET_OBJECTS:core_logic>)
 target_include_directories(test-tuirenderer PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(test-tuirenderer PRIVATE tui_lib)
-link_ftxui(test-tuirenderer)
 add_test(NAME TestTuiRenderer COMMAND test-tuirenderer)
 
 # --- Debug targets -----------------------------------------------------------
@@ -142,12 +140,10 @@ target_link_libraries(example-puzzlepresenter PRIVATE tui_lib)
 add_executable(example-tuirenderer examples/example_tuirenderer.cpp $<TARGET_OBJECTS:core_logic>)
 target_include_directories(example-tuirenderer PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(example-tuirenderer PRIVATE tui_lib)
-link_ftxui(example-tuirenderer)
 
 add_executable(example-interactive-tui examples/example_interactive_tui.cpp $<TARGET_OBJECTS:core_logic>)
 target_include_directories(example-interactive-tui PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(example-interactive-tui PRIVATE tui_lib)
-link_ftxui(example-interactive-tui)
 
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
