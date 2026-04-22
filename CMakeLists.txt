@@ -154,7 +154,15 @@ target_include_directories(test-textgamesaver PRIVATE include)
 add_executable(test-tuirenderer
   tests/test_tuirenderer.cpp
   src/TuiRenderer.cpp
+  src/PuzzlePresenter.cpp
   src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
+  src/BinaryGameSaver.cpp
+  src/TextGameSaver.cpp
+  src/UndoRedoManager.cpp
 )
 target_include_directories(test-tuirenderer PRIVATE include)
 target_link_libraries(test-tuirenderer
@@ -169,6 +177,11 @@ add_executable(example-puzzlepresenter
   src/BinaryGameSaver.cpp
   src/TextGameSaver.cpp
   src/UndoRedoManager.cpp
+  src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
 )
 target_include_directories(example-puzzlepresenter PRIVATE include)
 
@@ -177,6 +190,10 @@ add_executable(example-tuirenderer
   src/TuiRenderer.cpp
   src/PuzzlePresenter.cpp
   src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
   src/BinaryGameSaver.cpp
   src/TextGameSaver.cpp
   src/UndoRedoManager.cpp
@@ -193,6 +210,10 @@ add_executable(example-interactive-tui
   src/TuiRenderer.cpp
   src/PuzzlePresenter.cpp
   src/ManhattanDistance.cpp
+  src/HammingDistance.cpp
+  src/LookAhead.cpp
+  src/UndoRedo.cpp
+  src/MoveAdvisor.cpp
   src/BinaryGameSaver.cpp
   src/TextGameSaver.cpp
   src/UndoRedoManager.cpp
