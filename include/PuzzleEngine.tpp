@@ -268,3 +268,11 @@ requires std::copyable<T>
 std::pair<int, int> PuzzleEngine<T>::getEmptyPosition() const noexcept {
     return {emptyX_, emptyY_};
 }
+
+template <typename T>
+requires std::copyable<T>
+void PuzzleEngine<T>::updateEmptyPosition(const T& emptyValue) {
+    auto [x, y] = findEmptyTile(emptyValue);
+    emptyX_ = x;
+    emptyY_ = y;
+}

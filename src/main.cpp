@@ -11,10 +11,18 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
+#include <filesystem>
 
 /**
  * @brief Główna klasa kontrolera TUI łącząca Model z Widokiem
  */
+enum class InputMode {
+    None,
+    Save,
+    Load
+};
+
 class InteractivePuzzleController {
 private:
     PuzzlePresenter presenter_;
@@ -23,6 +31,9 @@ private:
     ftxui::ScreenInteractive screen_;
     bool gameRunning_;
     std::string statusMessage_;
+    std::string savePath_;
+    InputMode inputMode_;
+    std::string inputBuffer_;
 
     /**
      * @brief Aktualizuje widok po zmianie stanu gry
@@ -115,28 +126,141 @@ private:
     }
 
     /**
-     * @brief Obsługuje zapis gry
+     * @brief Normalizuje ścieżkę - rozszerza ~ na home directory i obsługuje ścieżki absolutne
+     * @param path Ścieżka do normalizacji
+     * @return Znormalizowana ścieżka
      */
-    void handleSave() {
-        try {
-            presenter_.saveGame("puzzle_save.txt");
-            statusMessage_ = "Gra zapisana do puzzle_save.txt";
-        } catch (const std::exception& e) {
-            statusMessage_ = std::string("Błąd zapisu: ") + e.what();
+    static std::string normalizePath(const std::string& path) {
+        std::string result = path;
+
+
+        if (!result.empty() && result[0] == '~') {
+            const char* home = std::getenv("HOME");
+            if (home) {
+                result = std::string(home) + result.substr(1);
+            }
         }
+
+        try {
+
+            if (std::filesystem::path(result).is_absolute()) {
+                return result;
+            }
+        } catch (...) {
+
+        }
+
+
+        std::ifstream test(result);
+        if (test.good()) {
+            test.close();
+            return result;
+        }
+
+
+        std::string parentPath = "../" + result;
+        std::ifstream parentTest(parentPath);
+        if (parentTest.good()) {
+            parentTest.close();
+            return parentPath;
+        }
+
+
+
+        return result;
+    }
+
+    /**
+     * @brief Sprawdza czy plik istnieje w dowolnej z katalogu bieżącego lub nadrzędnego
+     * @param filename Nazwa pliku do sprawdzenia
+     * @return Ścieżka do pliku jeśli istnieje, pusty string w przeciwnym wypadku
+     */
+    static std::string findSaveFile(const std::string& filename) {
+        std::ifstream file(filename);
+        if (file.good()) {
+            file.close();
+            return filename;
+        }
+
+        std::string parentPath = "../" + filename;
+        std::ifstream parentFile(parentPath);
+        if (parentFile.good()) {
+            parentFile.close();
+            return parentPath;
+        }
+
+        return "";
+    }
+
+    /**
+     * @brief Rozpoczyna tryb inputu do wpisania ścieżki zapisu
+     */
+    void beginSaveMode() {
+        inputMode_ = InputMode::Save;
+        inputBuffer_ = savePath_;
+        statusMessage_ = "Podaj ścieżkę do pliku zapisu (ESC - anuluj, ENTER - zapisz):";
         refreshView();
     }
 
     /**
-     * @brief Obsługuje wczytanie gry
+     * @brief Rozpoczyna tryb inputu do wpisania ścieżki wczytania
      */
-    void handleLoad() {
-        try {
-            presenter_.loadGame("puzzle_save.txt");
-            statusMessage_ = "Gra wczytana z puzzle_save.txt";
-        } catch (const std::exception& e) {
-            statusMessage_ = std::string("Błąd wczytania: ") + e.what();
+    void beginLoadMode() {
+        inputMode_ = InputMode::Load;
+        inputBuffer_ = savePath_;
+        statusMessage_ = "Podaj ścieżkę do pliku wczytania (ESC - anuluj, ENTER - wczytaj):";
+        refreshView();
+    }
+
+    /**
+     * @brief Kończy tryb inputu i wykonuje akcję zapisu/wczytania
+     */
+    void confirmInputMode() {
+        if (inputBuffer_.empty()) {
+            statusMessage_ = "Błąd: ścieżka nie może być pusta";
+            inputMode_ = InputMode::None;
+            refreshView();
+            return;
         }
+
+
+        std::string resolvedPath = normalizePath(inputBuffer_);
+
+        try {
+            if (inputMode_ == InputMode::Save) {
+
+                try {
+                    auto parentPath = std::filesystem::path(resolvedPath).parent_path();
+                    if (!parentPath.empty() && !std::filesystem::exists(parentPath)) {
+                        std::filesystem::create_directories(parentPath);
+                    }
+                } catch (...) {
+
+                }
+
+                presenter_.saveGame(resolvedPath);
+                savePath_ = resolvedPath;
+                statusMessage_ = "Gra zapisana do " + resolvedPath;
+            } else if (inputMode_ == InputMode::Load) {
+                presenter_.loadGame(resolvedPath);
+                savePath_ = resolvedPath;
+                statusMessage_ = "Gra wczytana z " + resolvedPath;
+            }
+        } catch (const std::exception& e) {
+            statusMessage_ = std::string("Błąd: ") + e.what();
+        }
+
+        inputMode_ = InputMode::None;
+        refreshView();
+    }
+
+    /**
+     * @brief Anuluje tryb inputu
+     */
+    void cancelInputMode() {
+        inputMode_ = InputMode::None;
+        inputBuffer_.clear();
+        statusMessage_ = "Anulowano";
         refreshView();
     }
 
@@ -257,6 +381,20 @@ private:
             );
         }
 
+
+        if (inputMode_ != InputMode::None) {
+            mainContent.push_back(ftxui::separator());
+            std::string modeLabel = (inputMode_ == InputMode::Save) ? "Zapisz:" : "Wczytaj:";
+            mainContent.push_back(
+                ftxui::hbox({
+                    ftxui::text(modeLabel) | ftxui::bold,
+                    ftxui::text(" [") | ftxui::dim,
+                    ftxui::text(inputBuffer_) | ftxui::bgcolor(ftxui::Color::White) | ftxui::color(ftxui::Color::Black),
+                    ftxui::text("]") | ftxui::dim
+                })
+            );
+        }
+
         mainContent.push_back(ftxui::separator());
         mainContent.push_back(
             ftxui::text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
@@ -276,6 +414,32 @@ private:
         });
 
         component = ftxui::CatchEvent(component, [this](ftxui::Event event) {
+
+            if (inputMode_ != InputMode::None) {
+                if (event == ftxui::Event::Escape) {
+                    cancelInputMode();
+                    return true;
+                }
+                if (event == ftxui::Event::Return) {
+                    confirmInputMode();
+                    return true;
+                }
+                if (event == ftxui::Event::Backspace) {
+                    if (!inputBuffer_.empty()) {
+                        inputBuffer_.pop_back();
+                        refreshView();
+                    }
+                    return true;
+                }
+                if (event.is_character()) {
+                    inputBuffer_ += event.character()[0];
+                    refreshView();
+                    return true;
+                }
+                return false;
+            }
+
+
             if (event == ftxui::Event::Character('q') || event == ftxui::Event::Character('Q')) {
                 gameRunning_ = false;
                 screen_.ExitLoopClosure()();
@@ -336,11 +500,11 @@ private:
 
 
             if (event == ftxui::Event::Character('v') || event == ftxui::Event::Character('V')) {
-                handleSave();
+                beginSaveMode();
                 return true;
             }
             if (event == ftxui::Event::Character('l') || event == ftxui::Event::Character('L')) {
-                handleLoad();
+                beginLoadMode();
                 return true;
             }
 
@@ -364,14 +528,19 @@ public:
     /**
      * @brief Konstruktor kontrolera
      * @param boardSize Rozmiar planszy (N x N)
+     * @param autoLoadSave Jeśli true i plik puzzle_save.txt istnieje, wczytaj grę zamiast tworzyć nową
+     * @param savePath Ścieżka do pliku zapisu
      */
-    explicit InteractivePuzzleController(int boardSize)
+    explicit InteractivePuzzleController(int boardSize, bool autoLoadSave = false, const std::string& savePath = "puzzle_save.txt")
         : presenter_(boardSize, std::make_unique<TextGameSaver>()),
           renderer_(boardSize, std::make_unique<ManhattanDistance>()),
           advisor_(std::make_shared<MoveAdvisor>(std::make_shared<ManhattanDistance>())),
           screen_(ftxui::ScreenInteractive::Fullscreen()),
           gameRunning_(true),
-          statusMessage_("Witaj w N-Puzzle! Użyj strzałek lub WSAD do gry")
+          statusMessage_("Witaj w N-Puzzle! Użyj strzałek lub WSAD do gry"),
+          savePath_(savePath),
+          inputMode_(InputMode::None),
+          inputBuffer_("")
     {
 
         auto& stats = presenter_.getEngine().getStats();
@@ -386,7 +555,18 @@ public:
         });
 
 
-        presenter_.shuffle();
+        if (autoLoadSave) {
+            try {
+                presenter_.loadGame(savePath_);
+                statusMessage_ = "Gra wczytana z " + savePath_;
+            } catch (...) {
+
+                presenter_.shuffle();
+            }
+        } else {
+
+            presenter_.shuffle();
+        }
     }
 
     /**
@@ -420,27 +600,66 @@ int main() {
         std::cout << "  T - Reset (do rozwiązanej)" << std::endl;
         std::cout << "  Q - Wyjście" << std::endl;
 
-
         int boardSize = 4;
-        std::cout << "\nPodaj rozmiar planszy (domyślnie 4, zakres 2-8): ";
-        std::string input;
-        std::getline(std::cin, input);
+        bool autoLoadGame = false;
 
-        if (!input.empty()) {
-            try {
-                int parsed = std::stoi(input);
-                if (parsed >= 2 && parsed <= 100) {
-                    boardSize = parsed;
-                } else {
-                    std::cout << "Rozmiar poza zakresem. Używanie domyślnego: 4\n";
+
+        std::string savePath;
+        std::ifstream saveFile("puzzle_save.txt");
+        if (!saveFile.good()) {
+            saveFile.close();
+            std::ifstream parentSaveFile("../puzzle_save.txt");
+            if (parentSaveFile.good()) {
+                savePath = "../puzzle_save.txt";
+                parentSaveFile.close();
+            } else {
+                parentSaveFile.close();
+            }
+        } else {
+            savePath = "puzzle_save.txt";
+            saveFile.close();
+        }
+
+        if (!savePath.empty()) {
+            std::ifstream file(savePath);
+            if (file.good()) {
+                std::string firstLine;
+                if (std::getline(file, firstLine)) {
+                    try {
+                        boardSize = std::stoi(firstLine);
+                        autoLoadGame = true;
+                        std::cout << "\nZnaleziono plik zapisu (" << savePath << ") o rozmiarze planszy " << boardSize << "x" << boardSize << ".\n";
+                    } catch (...) {
+                        std::cout << "\nNie udało się odczytać rozmiaru z pliku zapisu. Używanie domyślnego: 4\n";
+                    }
                 }
-            } catch (const std::exception&) {
-                std::cout << "Nieprawidłowe wejście. Używanie domyślnego: 4\n";
+                file.close();
+            }
+        } else {
+
+            std::cout << "\nPodaj rozmiar planszy (domyślnie 4, zakres 2-8): ";
+            std::string input;
+            std::getline(std::cin, input);
+
+            if (!input.empty()) {
+                try {
+                    int parsed = std::stoi(input);
+                    if (parsed >= 2 && parsed <= 100) {
+                        boardSize = parsed;
+                    } else {
+                        std::cout << "Rozmiar poza zakresem. Używanie domyślnego: 4\n";
+                    }
+                } catch (const std::exception&) {
+                    std::cout << "Nieprawidłowe wejście. Używanie domyślnego: 4\n";
+                }
             }
         }
-        std::cout << "\nUruchamianie gry z planszą " << boardSize << "x" << boardSize << "...\n";
 
-        InteractivePuzzleController controller(boardSize);
+        std::cout << "Uruchamianie gry z planszą " << boardSize << "x" << boardSize << "...\n";
+
+
+        std::string controllerSavePath = savePath.empty() ? "puzzle_save.txt" : savePath;
+        InteractivePuzzleController controller(boardSize, autoLoadGame, controllerSavePath);
         controller.run();
 
         return 0;

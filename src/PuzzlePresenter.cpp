@@ -91,6 +91,10 @@ bool PuzzlePresenter::undo() {
 
     board.swap(move.fromX, move.fromY, move.toX, move.toY);
 
+    engine_.updateEmptyPosition(0);
+    engine_.getStats().undoCount.set(engine_.getStats().undoCount.get() + 1);
+    engine_.getStats().update(board);
+
     return true;
 }
 
@@ -105,6 +109,13 @@ bool PuzzlePresenter::redo() {
     const auto& move = *moveOpt;
 
     board.swap(move.fromX, move.fromY, move.toX, move.toY);
+
+    engine_.updateEmptyPosition(0);
+    int currentUndoCount = engine_.getStats().undoCount.get();
+    if (currentUndoCount > 0) {
+        engine_.getStats().undoCount.set(currentUndoCount - 1);
+    }
+    engine_.getStats().update(board);
 
     return true;
 }

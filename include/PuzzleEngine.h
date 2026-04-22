@@ -139,6 +139,13 @@ public:
      * @return Para współrzędnych (x, y)
      */
     std::pair<int, int> getEmptyPosition() const noexcept;
+
+    /**
+     * @brief Aktualizuje pozycję pustego pola na podstawie bieżącego stanu planszy
+     * @param emptyValue Wartość reprezentująca puste pole
+     * @throws std::runtime_error Gdy puste pole nie zostało znalezione
+     */
+    void updateEmptyPosition(const T& emptyValue = T{});
 };
 
 #include "PuzzleEngine.tpp"
