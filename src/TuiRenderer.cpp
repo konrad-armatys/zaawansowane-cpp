@@ -1,4 +1,6 @@
 #include "TuiRenderer.h"
+#include "PuzzlePresenter.h"
+#include "ManhattanDistance.h"
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -47,9 +49,12 @@ Element TuiRenderer::createTile(int value, int x, int y, int boardSize) const {
     if (hintPosition_.has_value() && hintPosition_->first == x && hintPosition_->second == y) {
         tileElement = tileElement | bgcolor(Color::Yellow) | color(Color::Black) | bold;
     }
+
     else if (isTileCorrect(value, x, y, boardSize)) {
         tileElement = tileElement | bgcolor(Color::Green) | color(Color::Black);
-    } else {
+    }
+
+    else {
         tileElement = tileElement | bgcolor(Color::Blue) | color(Color::White);
     }
 
@@ -83,7 +88,7 @@ Element TuiRenderer::createGrid(const Board<int>& board) const {
             rows.push_back(text("...") | dim);
         }
 
-        return vbox(std::move(rows)) | border | borderStyled(ROUNDED);
+        return vbox(std::move(rows)) | borderStyled(ROUNDED);
     } else {
         Elements rows;
         for (int y = 0; y < size; ++y) {
@@ -93,8 +98,40 @@ Element TuiRenderer::createGrid(const Board<int>& board) const {
             }
             rows.push_back(hbox(std::move(row)));
         }
-        return vbox(std::move(rows)) | border | borderStyled(ROUNDED);
+        return vbox(std::move(rows)) | borderStyled(ROUNDED);
     }
+}
+
+Element TuiRenderer::createStatsPanel(const GameStats& stats, double heuristicValue, int boardSize) const {
+    Elements statsElements;
+
+    statsElements.push_back(text("=== STATYSTYKI ===") | bold | color(Color::Cyan));
+    statsElements.push_back(separator());
+
+    statsElements.push_back(hbox({
+        text("Ruchy: ") | bold,
+        text(std::to_string(stats.movesCount.get())) | color(Color::Yellow)
+    }));
+
+    statsElements.push_back(hbox({
+        text("Cofnięcia: ") | bold,
+        text(std::to_string(stats.undoCount.get())) | color(Color::Yellow)
+    }));
+
+    statsElements.push_back(hbox({
+        text("Poprawne kafelki: ") | bold,
+        text(std::to_string(stats.correctTiles.get()) + " / " +
+             std::to_string(boardSize * boardSize)) | color(Color::Green)
+    }));
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << heuristicValue;
+    statsElements.push_back(hbox({
+        text("Heurystyka: ") | bold,
+        text(oss.str()) | color(Color::Magenta)
+    }));
+
+    return vbox(std::move(statsElements)) | size(WIDTH, GREATER_THAN, 30);
 }
 
 Element TuiRenderer::createStatsPanel() const {
@@ -131,6 +168,17 @@ Element TuiRenderer::createStatsPanel() const {
     return vbox(std::move(stats)) | border | borderStyled(ROUNDED) | size(WIDTH, GREATER_THAN, 30);
 }
 
+Element TuiRenderer::createMessagePanel(const std::string& message) const {
+    if (message.empty()) {
+        return text("");
+    }
+
+    return text(message) |
+           bgcolor(Color::Blue) |
+           color(Color::White) |
+           bold;
+}
+
 Element TuiRenderer::createMessagePanel() const {
     if (lastMessage_.empty()) {
         return text("");
@@ -142,6 +190,92 @@ Element TuiRenderer::createMessagePanel() const {
            bgcolor(Color::Blue) |
            color(Color::White) |
            bold;
+}
+
+Element TuiRenderer::createInputPanel(ViewInputMode mode, const std::string& buffer) const {
+    if (mode == ViewInputMode::None) {
+        return text("");
+    }
+
+    std::string modeLabel = (mode == ViewInputMode::Save) ? "Zapisz:" : "Wczytaj:";
+
+    return hbox({
+        text(modeLabel) | bold,
+        text(" [") | dim,
+        text(buffer) | bgcolor(Color::White) | color(Color::Black),
+        text("]") | dim
+    });
+}
+
+Element TuiRenderer::createControlsPanel() const {
+    return text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
+           dim | center;
+}
+
+Element TuiRenderer::createGameElement(const ViewState& state) {
+
+    lastMovesCount_ = state.stats.movesCount.get();
+    lastUndoCount_ = state.stats.undoCount.get();
+    lastCorrectTiles_ = state.stats.correctTiles.get();
+    lastHeuristicValue_ = state.heuristicValue;
+    lastMessage_ = state.statusMessage;
+    hintPosition_ = state.hintPosition;
+
+    const int boardSize = state.board.getSize();
+
+
+    Element gridElement = createGrid(state.board);
+
+
+    Element statsElement = createStatsPanel(state.stats, state.heuristicValue, boardSize);
+
+
+    Elements mainContent;
+    mainContent.push_back(text("N-PUZZLE GAME") | bold | color(Color::Cyan) | center);
+    mainContent.push_back(separator());
+
+    Elements gameArea;
+    gameArea.push_back(gridElement | flex);
+    gameArea.push_back(separator());
+    gameArea.push_back(statsElement);
+
+    mainContent.push_back(hbox(std::move(gameArea)));
+
+    if (!state.statusMessage.empty()) {
+        mainContent.push_back(createMessagePanel(state.statusMessage));
+    }
+
+    if (state.inputMode != ViewInputMode::None) {
+        mainContent.push_back(separator());
+        mainContent.push_back(createInputPanel(state.inputMode, state.inputBuffer));
+    }
+
+    mainContent.push_back(separator());
+    mainContent.push_back(createControlsPanel());
+
+    return vbox(std::move(mainContent));
+}
+
+Element TuiRenderer::createGameElement(const PuzzlePresenter& presenter) {
+    const auto& board = presenter.getEngine().getBoard();
+    const auto& stats = presenter.getEngine().getStats();
+
+    double heuristicValue = 0.0;
+    if (heuristic_) {
+        heuristicValue = heuristic_->calculate(board);
+    }
+
+    ViewState state{
+        board,
+        stats,
+        heuristicValue,
+        lastMessage_,
+        ViewInputMode::None,
+        "",
+        hintPosition_
+    };
+
+    return createGameElement(state);
 }
 
 void TuiRenderer::render(const Board<int>& board) {
@@ -177,10 +311,7 @@ void TuiRenderer::render(const Board<int>& board) {
     }
 
     mainContent.push_back(separator());
-    mainContent.push_back(
-        text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
-        dim | center
-    );
+    mainContent.push_back(createControlsPanel());
 
     auto document = vbox(std::move(mainContent));
 
