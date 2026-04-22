@@ -1,0 +1,368 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+left to right direction
+
+title Układanki z lat dziecinnych - Diagram Klas (MVP)
+
+package "Model" {
+    class "Board<T>" as Board << (T, #FF7700) template >> {
+        - size_: int
+        - data_: std::vector<T>
+        - toIndex(x, y): int
+        - validateCoordinates(x, y): void
+        + Board(size, defaultValue)
+        + Board(size, data)
+        + at(x, y): T& [2x]
+        + swap(x1, y1, x2, y2): void
+        + getSize(): int
+        + getCopy(): Board<T>
+        + getData(): std::vector<T>&
+        + operator==, operator!=
+    }
+
+    class "Direction" as Direction << enum >> {
+        Up
+        Down
+        Left
+        Right
+    }
+
+    class "GameStats" {
+        - boardSize_: int
+        + movesCount: Property<int>
+        + undoCount: Property<int>
+        + correctTiles: Property<int>
+        + GameStats(boardSize)
+        + update(board): void
+        + reset(): void
+        + onMovesChange(callback): void
+        + onUndoChange(callback): void
+        + onCorrectTilesChange(callback): void
+    }
+
+    class "Property<T>" as Property << (T, #FF7700) template >> {
+        - value_: T
+        - onChange_: std::function<void(T)>
+        + Property(initialValue)
+        + setOnChange(callback): void
+        + get(): T
+        + set(newValue): void
+        + operator=, operator++, operator+=
+        + reset(): void
+    }
+
+    class "PuzzleEngine<T>" as Engine << (T, #FF7700) template >> {
+        - board_: Board<T>
+        - stats_: GameStats
+        - rng_: std::mt19937
+        - emptyX_, emptyY_: int
+        - findEmptyTile(emptyValue): std::pair<int, int>
+        - countInversions(emptyValue): int
+        - isSolvable(emptyValue): bool
+        - fixUnsolvableLayout(emptyValue): void
+        - isMovePossible(dir): bool
+        - executeMove(dir, emptyValue): bool
+        + PuzzleEngine(size)
+        + PuzzleEngine(board, stats, emptyValue)
+        + shuffle(emptyValue): void
+        + move(dir, emptyValue): bool
+        + isSolved(emptyValue): bool
+        + getBoard(): Board<T>&
+        + getStats(): GameStats&
+        + getEmptyPosition(): std::pair<int, int>
+        + updateEmptyPosition(emptyValue): void
+        + swapTiles(x1, y1, x2, y2): void
+    }
+}
+
+package "Historia ruchów" {
+    class "MoveData" {
+        + fromX, fromY, toX, toY: int
+        + MoveData(fx, fy, tx, ty)
+        + reverse(): MoveData
+        + operator==
+    }
+
+    class "UndoRedoManager" {
+        - undoStack_: std::stack<MoveData>
+        - redoStack_: std::stack<MoveData>
+        - maxHistorySize_: size_t
+        - limitStackSize(stack): void
+        + UndoRedoManager(maxHistorySize)
+        + pushMove(fromX, fromY, toX, toY): void
+        + undo(): std::optional<MoveData>
+        + redo(): std::optional<MoveData>
+        + canUndo(), canRedo(): bool
+        + clear(): void
+        + clearRedoStack(): void
+        + getUndoStackSize(), getRedoStackSize(): size_t
+        + setMaxHistorySize(maxSize): void
+        + exportUndoStack(), exportRedoStack(): std::vector<MoveData>
+        + importUndoStack(), importRedoStack(moves): void
+    }
+}
+
+package "Persystencja" {
+    interface "IGameSaver" {
+        {abstract} + save(path, state): void
+        {abstract} + load(path): GameState
+    }
+
+    class "GameState" {
+        + boardSize: int
+        + boardData: std::vector<int>
+        + stats: GameStats
+        + undoStack: std::vector<MoveData>
+        + redoStack: std::vector<MoveData>
+    }
+
+    class "TextGameSaver" {
+        + save(path, state): void
+        + load(path): GameState
+    }
+
+    class "BinaryGameSaver" {
+        + save(path, state): void
+        + load(path): GameState
+    }
+
+    class "PathResolver" {
+        {static} + normalizePath(path): std::string
+        {static} + findSaveFile(filename): std::string
+        {static} + detectSaveFile(filename): std::optional<std::string>
+        {static} + probeSavedBoardSize(filename): std::optional<int>
+    }
+}
+
+package "'AI' i Heurystyki" {
+    interface "IHeuristic<T>" as IHeuristic << (T, #FF7700) template >> {
+        {abstract} + calculate(board): double
+    }
+
+    class "ManhattanDistance<T>" as Manhattan << (T, #FF7700) template >> {
+        + calculate(board): double
+    }
+
+    class "HammingDistance<T>" as Hamming << (T, #FF7700) template >> {
+        + calculate(board): double
+    }
+
+    class "LookAhead<T>" as LookAhead << (T, #FF7700) template >> {
+        + calculate(board): double
+    }
+
+    class "MovePath" {
+        + moves: std::vector<Direction>
+        + finalScore: double
+        + operator<
+    }
+
+    class "MoveAdvisor<T>" as Advisor << (T, #FF7700) template >> {
+        - heuristic_: std::shared_ptr<IHeuristic<T>>
+        {static} - LOOKAHEAD_DEPTH: int = 4
+        - getPossibleMoves(emptyX, emptyY, boardSize): std::vector<Direction>
+        - getNewEmptyPosition(emptyX, emptyY, dir): std::pair<int, int>
+        - simulateMove(board, dir, emptyX, emptyY): std::pair<Board<T>, std::pair<int, int>>
+        - explorePaths(board, emptyX, emptyY, depth, currentPath, lastMove): MovePath
+        - isReverseMove(move, lastMove): bool
+        + MoveAdvisor(heuristic)
+        + suggestMove(board, emptyX, emptyY): std::optional<Direction>
+        + setHeuristic(heuristic): void
+        + getDepth(): int
+    }
+}
+
+package "Tryb TUI" {
+    class "InputMode" as InputMode << enum >> {
+        None
+        Save
+        Load
+    }
+
+    class "InputModeHandler" {
+        - inputMode_: InputMode
+        - inputBuffer_: std::string
+        + InputModeHandler()
+        + beginSaveMode(initialBuffer): void
+        + beginLoadMode(initialBuffer): void
+        + confirm(): bool
+        + cancel(): void
+        + handleCharacter(c): void
+        + inputBackspace(): void
+        + isInInputMode(): bool
+        + getInputMode(): InputMode
+        + getInputBuffer(): std::string
+    }
+}
+
+package "Prezenter" {
+    struct "PuzzleViewState" {
+        + board: const Board<int>&
+        + stats: const GameStats&
+        + statusMessage: std::string
+        + inputMode: InputMode
+        + inputBuffer: std::string
+        + heuristicValue: double
+        + hintPosition: std::optional<std::pair<int, int>>
+    }
+
+    class "PuzzlePresenter" {
+        - engine_: PuzzleEngine<int>
+        - undoRedoManager_: UndoRedoManager
+        - inputModeHandler_: InputModeHandler
+        - saveHandler_: std::unique_ptr<IGameSaver>
+        - heuristic_: std::unique_ptr<IHeuristic<int>>
+        - statusMessage_: std::string
+        - savePath_: std::string
+        - hintPosition_: std::optional<std::pair<int, int>>
+        - onChange_: std::function<void()>
+        - captureCurrentState(): GameState
+        - restoreState(state): void
+        - notifyChanged(): void
+        + PuzzlePresenter(size, saver, heuristic, savePath)
+        + saveGame(filename): void
+        + loadGame(filename): void
+        + setSaveHandler(saver): void
+        + getEngine(): PuzzleEngine<int>&
+        + getUndoRedoManager(): UndoRedoManager&
+        + move(dir): bool
+        + undo(), redo(): bool
+        + shuffle(): void
+        + hint(advisor): void
+        + beginSaveMode(), beginLoadMode(): void
+        + confirmInputMode(), cancelInputMode(): void
+        + handleCharacter(c), inputBackspace(): void
+        + isInInputMode(), getInputMode(): bool
+        + getInputBuffer(), getStatusMessage(): std::string
+        + setStatusMessage(message): void
+        + getSavePath(): std::string
+        + setSavePath(path): void
+        + setHeuristic(heuristic): void
+        + getHeuristicValue(): double
+        + getHintPosition(): std::optional<std::pair<int, int>>
+        + clearHintHighlight(): void
+        + setOnChange(callback): void
+        + bootstrap(autoLoadSave): void
+        + getViewState(): PuzzleViewState
+        __ Deleguje do InputModeHandler i PathResolver __
+    }
+}
+
+package "Widok (FTXUI)" {
+    interface "IPuzzleView" {
+        {abstract} + render(board): void
+        {abstract} + updateStats(stats, heuristicValue): void
+        {abstract} + showMessage(message): void
+        {abstract} + refresh(): void
+    }
+
+    class "TileRenderer" {
+        + renderTile(tile, isCorrect, isHinted): ftxui::Element
+    }
+
+    class "GridRenderer" {
+        + renderGrid(board, hintPosition): ftxui::Element
+    }
+
+    class "StatsPanelRenderer" {
+        + renderStatsPanel(stats, heuristicValue): ftxui::Element
+    }
+
+    class "ControlsPanelRenderer" {
+        + renderControlsPanel(): ftxui::Element
+    }
+
+    class "MessagePanelRenderer" {
+        + renderMessagePanel(message): ftxui::Element
+    }
+
+    class "GameLayoutComposer" {
+        - tileRenderer_: std::shared_ptr<TileRenderer>
+        - gridRenderer_: std::shared_ptr<GridRenderer>
+        - statsRenderer_: std::shared_ptr<StatsPanelRenderer>
+        - controlsRenderer_: std::shared_ptr<ControlsPanelRenderer>
+        - messageRenderer_: std::shared_ptr<MessagePanelRenderer>
+        + compose(state): ftxui::Element
+    }
+
+    class "TuiRenderer" {
+        - lastMessage_: std::string
+        - boardSize_: int
+        - heuristic_: std::unique_ptr<IHeuristic<int>>
+        - hintPosition_: std::optional<std::pair<int, int>>
+        - layoutComposer_: std::shared_ptr<GameLayoutComposer>
+        - tileRenderer_: std::shared_ptr<TileRenderer>
+        + TuiRenderer(boardSize, heuristic)
+        + setHeuristic(heuristic): void
+        + render(board): void
+        + updateStats(stats, heuristicValue): void
+        + showMessage(message): void
+        + refresh(): void
+        + setHintHighlight(position): void
+        + getHintPosition(): std::optional<std::pair<int, int>>
+        + createGameElement(state): ftxui::Element
+        + createGameElement(presenter): ftxui::Element
+        __ Fasada delegująca renderowanie __
+        __ do wyspecjalizowanych komponentów UI
+    }
+}
+
+package "Koncepty" {
+    class "PuzzleTile" as PuzzleTile << concept >> {
+        {note} std::copyable, std::equality_comparable, std::default_constructible
+    }
+
+    class "PuzzleConcepts" as PuzzleConcepts << file >> {
+        {note} Definiuje concept PuzzleTile<T>
+    }
+}
+
+'' Relationships
+GameStats *-- "3" Property : uses >
+Engine *-- Board
+Engine *-- GameStats
+PuzzlePresenter *-- Engine
+PuzzlePresenter *-- UndoRedoManager
+PuzzlePresenter *-- IGameSaver : uses >
+PuzzlePresenter *-- IHeuristic : uses >
+PuzzlePresenter --> PuzzleViewState : creates >
+
+TextGameSaver ..|> IGameSaver
+BinaryGameSaver ..|> IGameSaver
+
+Manhattan ..|> IHeuristic
+Hamming ..|> IHeuristic
+LookAhead ..|> IHeuristic
+
+Advisor *-- IHeuristic
+Advisor --> MovePath : uses >
+Advisor --> Direction : uses >
+
+TuiRenderer ..|> IPuzzleView
+TuiRenderer *-- GameLayoutComposer
+TuiRenderer *-- IHeuristic : uses >
+GameLayoutComposer *-- TileRenderer
+GameLayoutComposer *-- GridRenderer
+GameLayoutComposer *-- StatsPanelRenderer
+GameLayoutComposer *-- ControlsPanelRenderer
+GameLayoutComposer *-- MessagePanelRenderer
+
+PuzzlePresenter *-- InputModeHandler
+PuzzlePresenter --> PathResolver : uses (static) >
+
+InputModeHandler --> InputMode
+
+PuzzleViewState --> Board
+PuzzleViewState --> GameStats
+PuzzleViewState --> Direction
+PuzzleViewState --> InputMode
+
+Board --> PuzzleTile : constraint >
+Engine --> PuzzleTile : constraint >
+Advisor --> PuzzleTile : constraint >
+IHeuristic --> PuzzleTile : constraint >
+GameState *-- GameStats
+GameState *-- MoveData
+
+@enduml
