@@ -1,5 +1,7 @@
 #include "MoveAdvisor.h"
 #include <algorithm>
+#include <queue>
+#include <map>
 
 MoveAdvisor::MoveAdvisor(std::shared_ptr<IHeuristic> heuristic)
     : heuristic_(std::move(heuristic)) {
@@ -51,56 +53,59 @@ MovePath MoveAdvisor::explorePaths(
     const Board<int>& board, int emptyX, int emptyY, int depth,
     std::vector<Direction> currentPath, std::optional<Direction> lastMove) const {
 
-    const double currentScore = heuristic_->calculate(board);
-
-
-
-
-
-
-
-    if (depth == 0 || currentScore == 0.0) {
-        return MovePath{
-            std::move(currentPath),
-            currentScore
-        };
-    }
-
-    const std::vector<Direction> possibleMoves = getPossibleMoves(emptyX, emptyY, board.getSize());
-
-    if (possibleMoves.empty()) {
-        return MovePath{
-            std::move(currentPath),
-            std::numeric_limits<double>::max()
-        };
-    }
-
-    MovePath bestPath{
-        std::move(currentPath),
-        std::numeric_limits<double>::max()
+    struct State {
+        Board<int> board;
+        int emptyX;
+        int emptyY;
+        std::vector<Direction> moves;
+        double score;
+        std::optional<Direction> lastMove;
     };
 
-    for (const Direction move : possibleMoves) {
-        if (lastMove.has_value() && isReverseMove(move, lastMove.value())) {
+    auto cmp = [](const State& a, const State& b) {
+        return a.score > b.score;
+    };
+
+    std::priority_queue<State, std::vector<State>, decltype(cmp)> queue(cmp);
+    queue.push({board, emptyX, emptyY, {}, heuristic_->calculate(board), lastMove});
+
+    MovePath bestPath{{}, std::numeric_limits<double>::max()};
+
+    while (!queue.empty()) {
+        State current = std::move(queue.top());
+        queue.pop();
+
+        if (current.moves.size() == static_cast<size_t>(depth) || current.score == 0.0) {
+            if (current.score < bestPath.finalScore) {
+                bestPath = {current.moves, current.score};
+            }
             continue;
         }
 
-        const auto [newBoard, newEmptyPos] = simulateMove(board, move, emptyX, emptyY);
+        const std::vector<Direction> possibleMoves = getPossibleMoves(
+            current.emptyX, current.emptyY, current.board.getSize());
 
-        std::vector<Direction> newPath = currentPath;
-        newPath.push_back(move);
+        for (const Direction move : possibleMoves) {
+            if (current.lastMove.has_value() && isReverseMove(move, current.lastMove.value())) {
+                continue;
+            }
 
-        const MovePath candidatePath = explorePaths(
-            newBoard,
-            newEmptyPos.first,
-            newEmptyPos.second,
-            depth - 1,
-            newPath,
-            move
-        );
+            const auto [newBoard, newEmptyPos] = simulateMove(
+                current.board, move, current.emptyX, current.emptyY);
 
-        if (candidatePath.finalScore < bestPath.finalScore) {
-            bestPath = candidatePath;
+            std::vector<Direction> newMoves = current.moves;
+            newMoves.push_back(move);
+
+            double newScore = heuristic_->calculate(newBoard);
+
+            queue.push({
+                std::move(newBoard),
+                newEmptyPos.first,
+                newEmptyPos.second,
+                std::move(newMoves),
+                newScore,
+                move
+            });
         }
     }
 

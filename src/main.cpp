@@ -208,7 +208,7 @@ private:
             rows.push_back(ftxui::hbox(std::move(row)));
         }
 
-        auto gridElement = ftxui::vbox(std::move(rows)) | ftxui::border | ftxui::borderStyled(ftxui::ROUNDED);
+        auto gridElement = ftxui::vbox(std::move(rows)) | ftxui::borderStyled(ftxui::ROUNDED);
 
 
         ftxui::Elements statsElements;
@@ -234,7 +234,7 @@ private:
             ftxui::text(heurOss.str()) | ftxui::color(ftxui::Color::Magenta)
         }));
 
-        auto statsElement = ftxui::vbox(std::move(statsElements)) | ftxui::border | ftxui::borderStyled(ftxui::ROUNDED) | ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 30);
+        auto statsElement = ftxui::vbox(std::move(statsElements)) | ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 30);
 
 
         ftxui::Elements mainContent;
@@ -249,11 +249,8 @@ private:
         mainContent.push_back(ftxui::hbox(std::move(gameArea)));
 
         if (!statusMessage_.empty()) {
-            mainContent.push_back(ftxui::separator());
             mainContent.push_back(
                 ftxui::text(statusMessage_) |
-                ftxui::border |
-                ftxui::borderStyled(ftxui::ROUNDED) |
                 ftxui::bgcolor(ftxui::Color::Blue) |
                 ftxui::color(ftxui::Color::White) |
                 ftxui::bold
@@ -411,9 +408,6 @@ public:
  */
 int main() {
     try {
-
-        constexpr int BOARD_SIZE = 4;
-
         std::cout << "=== N-Puzzle Game ===" << std::endl;
         std::cout << "Sterowanie:" << std::endl;
         std::cout << "  Strzałki / WSAD - Ruch" << std::endl;
@@ -425,10 +419,28 @@ int main() {
         std::cout << "  N - Nowa gra (shuffle)" << std::endl;
         std::cout << "  T - Reset (do rozwiązanej)" << std::endl;
         std::cout << "  Q - Wyjście" << std::endl;
-        std::cout << "\nNaciśnij Enter aby rozpocząć...";
-        std::cin.get();
 
-        InteractivePuzzleController controller(BOARD_SIZE);
+
+        int boardSize = 4;
+        std::cout << "\nPodaj rozmiar planszy (domyślnie 4, zakres 2-8): ";
+        std::string input;
+        std::getline(std::cin, input);
+
+        if (!input.empty()) {
+            try {
+                int parsed = std::stoi(input);
+                if (parsed >= 2 && parsed <= 100) {
+                    boardSize = parsed;
+                } else {
+                    std::cout << "Rozmiar poza zakresem. Używanie domyślnego: 4\n";
+                }
+            } catch (const std::exception&) {
+                std::cout << "Nieprawidłowe wejście. Używanie domyślnego: 4\n";
+            }
+        }
+        std::cout << "\nUruchamianie gry z planszą " << boardSize << "x" << boardSize << "...\n";
+
+        InteractivePuzzleController controller(boardSize);
         controller.run();
 
         return 0;
