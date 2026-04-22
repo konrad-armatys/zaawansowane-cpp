@@ -100,32 +100,23 @@ public:
 int main() {
     try {
         std::cout << "=== N-Puzzle Game ===\n"
-                  << "Sterowanie: Strzałki/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit\n";
+                  << "Sterowanie: Strzałki/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | Q - quit\n";
 
         auto detected = PuzzlePresenter::detectSaveFile("puzzle_save.txt");
         bool autoLoadGame = detected.has_value();
         std::string savePath = detected.value_or("puzzle_save.txt");
         int boardSize = 4;
 
-        if (autoLoadGame) {
-            if (auto probed = PuzzlePresenter::probeSavedBoardSize(savePath)) {
-                boardSize = *probed;
-                std::cout << "\nZnaleziono plik zapisu (" << savePath << ") o rozmiarze " << boardSize << "x" << boardSize << ".\n";
-            } else {
-                std::cout << "\nNie udało się odczytać rozmiaru z pliku zapisu. Używanie domyślnego: 4\n";
-            }
-        } else {
-            std::cout << "\nPodaj rozmiar planszy (domyślnie 4, zakres 2-8): ";
-            std::string input;
-            std::getline(std::cin, input);
-            if (!input.empty()) {
-                try {
-                    int parsed = std::stoi(input);
-                    if (parsed >= 2 && parsed <= 100) boardSize = parsed;
-                    else std::cout << "Rozmiar poza zakresem. Używanie domyślnego: 4\n";
-                } catch (const std::exception&) {
-                    std::cout << "Nieprawidłowe wejście. Używanie domyślnego: 4\n";
-                }
+        std::cout << "\nPodaj rozmiar planszy (domyślnie 4, zakres 2-16): ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (!input.empty()) {
+            try {
+                int parsed = std::stoi(input);
+                if (parsed >= 2 && parsed <= 16) boardSize = parsed;
+                else std::cout << "Rozmiar poza zakresem. Używanie domyślnego: 4\n";
+            } catch (const std::exception&) {
+                std::cout << "Nieprawidłowe wejście. Używanie domyślnego: 4\n";
             }
         }
 

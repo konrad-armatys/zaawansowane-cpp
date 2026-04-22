@@ -32,14 +32,15 @@ bool TuiRenderer::isTileCorrect(int value, int x, int y, int boardSize) const {
 }
 
 Element TuiRenderer::createTile(int value, int x, int y, int boardSize) const {
-    if (value == 0) {
-        return text("   ") | border | bgcolor(Color::Black);
-    }
-
     std::ostringstream oss;
     int width = 3;
     if (boardSize > 10) width = 4;
     if (boardSize > 31) width = 5;
+
+    if (value == 0) {
+        oss << std::setw(width) << " ";
+        return text(oss.str()) | border | bgcolor(Color::Black);
+    }
 
     oss << std::setw(width) << value;
 

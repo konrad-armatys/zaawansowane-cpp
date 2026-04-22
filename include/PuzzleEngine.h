@@ -146,6 +146,16 @@ public:
      * @throws std::runtime_error Gdy puste pole nie zostało znalezione
      */
     void updateEmptyPosition(const T& emptyValue = T{});
+
+    /**
+     * @brief Zamienia miejscami dwa kafelki na planszy
+     * @param x1 Współrzędna X pierwszego kafelka
+     * @param y1 Współrzędna Y pierwszego kafelka
+     * @param x2 Współrzędna X drugiego kafelka
+     * @param y2 Współrzędna Y drugiego kafelka
+     * @throws std::out_of_range Gdy współrzędne są poza planszą
+     */
+    void swapTiles(int x1, int y1, int x2, int y2);
 };
 
 #include "PuzzleEngine.tpp"

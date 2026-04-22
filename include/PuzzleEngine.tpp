@@ -40,7 +40,7 @@ std::pair<int, int> PuzzleEngine<T>::findEmptyTile(const T& emptyValue) const {
             }
         }
     }
-    throw std::runtime_error("Empty tile not found on board");
+    throw std::out_of_range("Empty tile not found on board");
 }
 
 template <typename T>
@@ -275,4 +275,10 @@ void PuzzleEngine<T>::updateEmptyPosition(const T& emptyValue) {
     auto [x, y] = findEmptyTile(emptyValue);
     emptyX_ = x;
     emptyY_ = y;
+}
+
+template <typename T>
+requires std::copyable<T>
+void PuzzleEngine<T>::swapTiles(int x1, int y1, int x2, int y2) {
+    board_.swap(x1, y1, x2, y2);
 }
