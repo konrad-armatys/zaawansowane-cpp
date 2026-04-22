@@ -9,15 +9,19 @@
  * Zlicza liczbę kafelków znajdujących się na niewłaściwych pozycjach.
  * Jest to prostsza i szybsza heurystyka niż Manhattan Distance,
  * ale może być mniej dokładna w ocenie odległości od rozwiązania.
+ *
+ * @tparam T Typ elementu planszy, musi spełniać PuzzleTile concept.
+ *           Wymaga tylko porównywalności i równości elementów.
  */
-class HammingDistance : public IHeuristic {
+template<PuzzleTile T>
+class HammingDistance : public IHeuristic<T> {
 public:
     /**
      * @brief Zlicza kafelki na niewłaściwych pozycjach
      * @param board Plansza do oceny
      * @return Liczba kafelków na błędnych pozycjach
      */
-    [[nodiscard]] double calculate(const Board<int>& board) const override;
+    [[nodiscard]] double calculate(const Board<T>& board) const override;
 
 private:
     /**
@@ -27,7 +31,9 @@ private:
      * @param size Rozmiar planszy
      * @return Docelowa wartość kafelka na tej pozycji
      */
-    [[nodiscard]] int getTargetValue(int x, int y, int size) const;
+    [[nodiscard]] T getTargetValue(int x, int y, int size) const;
 };
+
+#include "HammingDistance.tpp"
 
 #endif

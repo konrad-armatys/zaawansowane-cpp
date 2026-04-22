@@ -17,7 +17,7 @@ class InteractivePuzzleController {
 private:
     PuzzlePresenter presenter_;
     TuiRenderer renderer_;
-    std::shared_ptr<MoveAdvisor> advisor_;
+    std::shared_ptr<MoveAdvisor<int>> advisor_;
     ftxui::ScreenInteractive screen_;
     bool gameRunning_;
 
@@ -72,9 +72,9 @@ public:
     explicit InteractivePuzzleController(int boardSize,
                                          bool autoLoadSave = false,
                                          const std::string& savePath = "puzzle_save.txt")
-        : presenter_(boardSize, std::make_unique<TextGameSaver>(), std::make_unique<ManhattanDistance>(), savePath),
-          renderer_(boardSize, std::make_unique<ManhattanDistance>()),
-          advisor_(std::make_shared<MoveAdvisor>(std::make_shared<ManhattanDistance>())),
+        : presenter_(boardSize, std::make_unique<TextGameSaver>(), std::make_unique<ManhattanDistance<int>>(), savePath),
+          renderer_(boardSize, std::make_unique<ManhattanDistance<int>>()),
+          advisor_(std::make_shared<MoveAdvisor<int>>(std::make_shared<ManhattanDistance<int>>())),
           screen_(ftxui::ScreenInteractive::Fullscreen()),
           gameRunning_(true)
     {

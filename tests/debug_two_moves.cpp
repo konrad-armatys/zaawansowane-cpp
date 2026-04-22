@@ -28,7 +28,7 @@ int main() {
     std::cout << "Board:\n";
     printBoard(board);
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
     std::cout << "\nManhattan Distance: " << heuristic->calculate(board) << "\n";
 
     std::cout << "\nEmpty position: (2, 2)\n";

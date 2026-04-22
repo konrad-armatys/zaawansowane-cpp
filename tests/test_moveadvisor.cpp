@@ -10,8 +10,8 @@
  */
 void testConstructorValid() {
     std::cout << "Test: Constructor with valid heuristic... ";
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
     assert(advisor.getDepth() == 4);
     std::cout << "PASSED\n";
 }
@@ -22,7 +22,7 @@ void testConstructorValid() {
 void testConstructorNull() {
     std::cout << "Test: Constructor with nullptr should throw... ";
     try {
-        MoveAdvisor advisor(nullptr);
+        MoveAdvisor<int> advisor(nullptr);
         std::cout << "FAILED (no exception thrown)\n";
         assert(false);
     } catch (const std::invalid_argument&) {
@@ -42,8 +42,8 @@ void testSuggestMoveOnSolvedBoardNoError() {
         7, 8, 0
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
 
     const auto suggestion = advisor.suggestMove(solvedBoard, 2, 2);
@@ -64,8 +64,8 @@ void testSuggestMoveOneMove() {
         7, 0, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 1, 2);
     assert(suggestion.has_value());
@@ -85,11 +85,11 @@ void testSuggestMoveWithDifferentHeuristics() {
         4, 7, 8
     });
 
-    auto manhattan = std::make_shared<ManhattanDistance>();
-    auto hamming = std::make_shared<HammingDistance>();
+    auto manhattan = std::make_shared<ManhattanDistance<int>>();
+    auto hamming = std::make_shared<HammingDistance<int>>();
 
-    MoveAdvisor advisorManhattan(manhattan);
-    MoveAdvisor advisorHamming(hamming);
+    MoveAdvisor<int> advisorManhattan(manhattan);
+    MoveAdvisor<int> advisorHamming(hamming);
 
     const auto suggestionManhattan = advisorManhattan.suggestMove(board, 0, 0);
     const auto suggestionHamming = advisorHamming.suggestMove(board, 0, 0);
@@ -106,10 +106,10 @@ void testSuggestMoveWithDifferentHeuristics() {
 void testSetHeuristicValid() {
     std::cout << "Test: Set heuristic with valid value... ";
 
-    auto manhattan = std::make_shared<ManhattanDistance>();
-    auto hamming = std::make_shared<HammingDistance>();
+    auto manhattan = std::make_shared<ManhattanDistance<int>>();
+    auto hamming = std::make_shared<HammingDistance<int>>();
 
-    MoveAdvisor advisor(manhattan);
+    MoveAdvisor<int> advisor(manhattan);
 
     Board<int> board(3, std::vector<int>{
         0, 2, 3,
@@ -135,8 +135,8 @@ void testSetHeuristicValid() {
 void testSetHeuristicNull() {
     std::cout << "Test: Set heuristic with nullptr should throw... ";
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     try {
         advisor.setHeuristic(nullptr);
@@ -153,8 +153,8 @@ void testSetHeuristicNull() {
 void testLookaheadDepth() {
     std::cout << "Test: Lookahead depth is 4... ";
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     assert(advisor.getDepth() == 4);
     std::cout << "PASSED\n";
@@ -172,8 +172,8 @@ void testComplexBoard() {
         6, 8, 0
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 2, 2);
     assert(suggestion.has_value());
@@ -192,8 +192,8 @@ void testSmallBoard() {
         0, 3
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 0, 1);
     assert(suggestion.has_value());
@@ -214,8 +214,8 @@ void testEarlyStopOnSolution() {
         7, 0, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 1, 2);
     assert(suggestion.has_value());
@@ -240,8 +240,8 @@ void testTwoMovesFromSolution() {
         0, 7, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 0, 2);
     assert(suggestion.has_value());
@@ -265,8 +265,8 @@ void testMediumDifficultyBoard() {
         7, 5, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 1, 1);
     assert(suggestion.has_value());
@@ -291,8 +291,8 @@ void testHighDistanceBoard() {
         2, 1, 0
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 2, 2);
     assert(suggestion.has_value());
@@ -313,11 +313,11 @@ void testHeuristicComparison() {
         7, 5, 8
     });
 
-    auto manhattan = std::make_shared<ManhattanDistance>();
-    auto hamming = std::make_shared<HammingDistance>();
+    auto manhattan = std::make_shared<ManhattanDistance<int>>();
+    auto hamming = std::make_shared<HammingDistance<int>>();
 
-    MoveAdvisor advisorM(manhattan);
-    MoveAdvisor advisorH(hamming);
+    MoveAdvisor<int> advisorM(manhattan);
+    MoveAdvisor<int> advisorH(hamming);
 
     const auto suggestionM = advisorM.suggestMove(board, 0, 1);
     const auto suggestionH = advisorH.suggestMove(board, 0, 1);
@@ -342,8 +342,8 @@ void testEmptyInCorner() {
         6, 7, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 0, 0);
     assert(suggestion.has_value());
@@ -367,8 +367,8 @@ void testImprovingSequence() {
         0, 7, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const double initialScore = heuristic->calculate(board);
 
@@ -411,8 +411,8 @@ void testDeepBoard() {
         7, 8, 6
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const double initialScore = heuristic->calculate(board);
 
@@ -450,8 +450,8 @@ void testScrambledBoard() {
         7, 2, 5
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 1, 1);
     assert(suggestion.has_value());
@@ -474,8 +474,8 @@ void testDepthMatters() {
         7, 8, 6
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 2, 1);
     assert(suggestion.has_value());
@@ -498,8 +498,8 @@ void testMultipleMisplacedTiles() {
         7, 5, 8
     });
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    MoveAdvisor advisor(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    MoveAdvisor<int> advisor(heuristic);
 
     const auto suggestion = advisor.suggestMove(board, 0, 0);
     assert(suggestion.has_value());

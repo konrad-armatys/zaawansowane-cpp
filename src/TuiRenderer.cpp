@@ -9,7 +9,7 @@
 
 using namespace ftxui;
 
-TuiRenderer::TuiRenderer(int boardSize, std::unique_ptr<IHeuristic> heuristic)
+TuiRenderer::TuiRenderer(int boardSize, std::unique_ptr<IHeuristic<int>> heuristic)
     : lastMessage_(""),
       lastMovesCount_(0),
       lastUndoCount_(0),
@@ -19,7 +19,7 @@ TuiRenderer::TuiRenderer(int boardSize, std::unique_ptr<IHeuristic> heuristic)
       heuristic_(std::move(heuristic)),
       hintPosition_(std::nullopt) {}
 
-void TuiRenderer::setHeuristic(std::unique_ptr<IHeuristic> heuristic) {
+void TuiRenderer::setHeuristic(std::unique_ptr<IHeuristic<int>> heuristic) {
     heuristic_ = std::move(heuristic);
 }
 

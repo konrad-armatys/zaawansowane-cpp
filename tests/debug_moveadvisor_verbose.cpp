@@ -66,7 +66,7 @@ struct PathResult {
 PathResult exploreManual(
     const Board<int>& board, int emptyX, int emptyY, int depth,
     std::vector<Direction> currentPath,
-    const std::shared_ptr<ManhattanDistance>& heuristic,
+    const std::shared_ptr<ManhattanDistance<int>>& heuristic,
     int indent = 0) {
 
     std::string indentStr(indent * 2, ' ');
@@ -115,7 +115,7 @@ int main() {
     printBoard(board);
     std::cout << "\n";
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
 
     int emptyX = 1, emptyY = 2;
 

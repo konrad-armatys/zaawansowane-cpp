@@ -15,7 +15,7 @@ void printBoard(const Board<int>& board) {
 }
 
 int main() {
-    auto heuristic = std::make_shared<ManhattanDistance>();
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
 
     std::cout << "=== Finding a true 2-move board ===\n\n";
 

@@ -30,10 +30,14 @@ struct MoveEvaluation {
  *
  * Analizuje możliwe ruchy i ocenia je za pomocą wybranej heurystyki,
  * wskazując najlepszy ruch dla gracza.
+ *
+ * @tparam T Typ elementu planszy, musi spełniać PuzzleTile concept.
+ *           Musi pasować do typu używanego w IHeuristic<T>.
  */
+template<PuzzleTile T>
 class LookAhead {
 private:
-    std::shared_ptr<IHeuristic> heuristic_;
+    std::shared_ptr<IHeuristic<T>> heuristic_;
 
     /**
      * @brief Oblicza wszystkie możliwe kierunki ruchu dla danej pozycji pustego pola
@@ -52,7 +56,7 @@ private:
      * @param emptyY Współrzędna y pustego pola
      * @return Nowa plansza po wykonaniu ruchu
      */
-    [[nodiscard]] Board<int> simulateMove(const Board<int>& board, Direction dir, int emptyX, int emptyY) const;
+    [[nodiscard]] Board<T> simulateMove(const Board<T>& board, Direction dir, int emptyX, int emptyY) const;
 
     /**
      * @brief Oblicza nową pozycję pustego pola po ruchu w danym kierunku
@@ -68,7 +72,7 @@ public:
      * @brief Konstruktor przyjmujący heurystykę
      * @param heuristic Wskaźnik do obiektu heurystyki
      */
-    explicit LookAhead(std::shared_ptr<IHeuristic> heuristic);
+    explicit LookAhead(std::shared_ptr<IHeuristic<T>> heuristic);
 
     /**
      * @brief Analizuje możliwe ruchy i zwraca je posortowane od najlepszego
@@ -77,7 +81,7 @@ public:
      * @param emptyY Współrzędna y pustego pola
      * @return Wektor ocen ruchów posortowany od najlepszego
      */
-    [[nodiscard]] std::vector<MoveEvaluation> evaluateMoves(const Board<int>& board, int emptyX, int emptyY) const;
+    [[nodiscard]] std::vector<MoveEvaluation> evaluateMoves(const Board<T>& board, int emptyX, int emptyY) const;
 
     /**
      * @brief Zwraca najlepszy możliwy ruch
@@ -86,13 +90,15 @@ public:
      * @param emptyY Współrzędna y pustego pola
      * @return Najlepszy kierunek ruchu lub std::nullopt jeśli brak możliwych ruchów
      */
-    [[nodiscard]] std::optional<Direction> getBestMove(const Board<int>& board, int emptyX, int emptyY) const;
+    [[nodiscard]] std::optional<Direction> getBestMove(const Board<T>& board, int emptyX, int emptyY) const;
 
     /**
      * @brief Zmienia używaną heurystykę
      * @param heuristic Nowa heurystyka
      */
-    void setHeuristic(std::shared_ptr<IHeuristic> heuristic);
+    void setHeuristic(std::shared_ptr<IHeuristic<T>> heuristic);
 };
+
+#include "LookAhead.tpp"
 
 #endif

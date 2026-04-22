@@ -31,10 +31,14 @@ struct MovePath {
  *
  * Symuluje wszystkie możliwe sekwencje 4 ruchów i wybiera najlepszy
  * pierwszy ruch zgodnie z wybraną heurystyką.
+ *
+ * @tparam T Typ elementu planszy, musi spełniać PuzzleTile concept.
+ *           Musi pasować do typu używanego w IHeuristic<T>.
  */
+template<PuzzleTile T>
 class MoveAdvisor {
 private:
-    std::shared_ptr<IHeuristic> heuristic_;
+    std::shared_ptr<IHeuristic<T>> heuristic_;
     static constexpr int LOOKAHEAD_DEPTH = 4;
 
     /**
@@ -63,8 +67,8 @@ private:
      * @param emptyY Współrzędna y pustego pola
      * @return Para: nowa plansza i para współrzędnych nowej pozycji pustego pola
      */
-    [[nodiscard]] std::pair<Board<int>, std::pair<int, int>> simulateMove(
-        const Board<int>& board, Direction dir, int emptyX, int emptyY) const;
+    [[nodiscard]] std::pair<Board<T>, std::pair<int, int>> simulateMove(
+        const Board<T>& board, Direction dir, int emptyX, int emptyY) const;
 
     /**
      * @brief Rekurencyjnie eksploruje wszystkie możliwe sekwencje ruchów
@@ -77,7 +81,7 @@ private:
      * @return Najlepsza ścieżka z tej pozycji
      */
     [[nodiscard]] MovePath explorePaths(
-        const Board<int>& board, int emptyX, int emptyY, int depth,
+        const Board<T>& board, int emptyX, int emptyY, int depth,
         std::vector<Direction> currentPath, std::optional<Direction> lastMove) const;
 
     /**
@@ -94,7 +98,7 @@ public:
      * @param heuristic Wskaźnik do obiektu heurystyki
      * @throws std::invalid_argument Gdy heuristic jest nullptr
      */
-    explicit MoveAdvisor(std::shared_ptr<IHeuristic> heuristic);
+    explicit MoveAdvisor(std::shared_ptr<IHeuristic<T>> heuristic);
 
     /**
      * @brief Sugeruje najlepszy ruch na podstawie symulacji 4 kroków w przód
@@ -104,14 +108,14 @@ public:
      * @return Sugerowany kierunek ruchu lub std::nullopt jeśli brak możliwych ruchów
      */
     [[nodiscard]] std::optional<Direction> suggestMove(
-        const Board<int>& currentBoard, int emptyX, int emptyY) const;
+        const Board<T>& currentBoard, int emptyX, int emptyY) const;
 
     /**
      * @brief Zmienia używaną heurystykę
      * @param heuristic Nowa heurystyka
      * @throws std::invalid_argument Gdy heuristic jest nullptr
      */
-    void setHeuristic(std::shared_ptr<IHeuristic> heuristic);
+    void setHeuristic(std::shared_ptr<IHeuristic<T>> heuristic);
 
     /**
      * @brief Pobiera głębokość analizy
@@ -121,5 +125,7 @@ public:
         return LOOKAHEAD_DEPTH;
     }
 };
+
+#include "MoveAdvisor.tpp"
 
 #endif

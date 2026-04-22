@@ -11,12 +11,12 @@
 
 PuzzlePresenter::PuzzlePresenter(int size,
                                  std::unique_ptr<IGameSaver> saver,
-                                 std::unique_ptr<IHeuristic> heuristic,
+                                 std::unique_ptr<IHeuristic<int>> heuristic,
                                  std::string savePath)
     : engine_(size),
       undoRedoManager_(100),
       saveHandler_(saver ? std::move(saver) : std::make_unique<TextGameSaver>()),
-      heuristic_(heuristic ? std::move(heuristic) : std::make_unique<ManhattanDistance>()),
+      heuristic_(heuristic ? std::move(heuristic) : std::make_unique<ManhattanDistance<int>>()),
       inputMode_(InputMode::None),
       inputBuffer_(""),
       statusMessage_("Witaj w N-Puzzle! Użyj strzałek lub WSAD do gry"),
@@ -178,7 +178,7 @@ void PuzzlePresenter::reset() {
     notifyChanged();
 }
 
-void PuzzlePresenter::hint(const MoveAdvisor& advisor) {
+void PuzzlePresenter::hint(const MoveAdvisor<int>& advisor) {
     auto [emptyX, emptyY] = engine_.getEmptyPosition();
     auto suggestion = advisor.suggestMove(engine_.getBoard(), emptyX, emptyY);
 
@@ -322,7 +322,7 @@ void PuzzlePresenter::setSavePath(std::string path) {
     savePath_ = std::move(path);
 }
 
-void PuzzlePresenter::setHeuristic(std::unique_ptr<IHeuristic> heuristic) {
+void PuzzlePresenter::setHeuristic(std::unique_ptr<IHeuristic<int>> heuristic) {
     heuristic_ = std::move(heuristic);
 }
 

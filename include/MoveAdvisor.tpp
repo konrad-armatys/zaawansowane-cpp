@@ -1,16 +1,20 @@
+#ifndef MOVEADVISOR_TPP
+#define MOVEADVISOR_TPP
+
 #include "MoveAdvisor.h"
 #include <algorithm>
 #include <queue>
-#include <map>
 
-MoveAdvisor::MoveAdvisor(std::shared_ptr<IHeuristic> heuristic)
+template<PuzzleTile T>
+MoveAdvisor<T>::MoveAdvisor(std::shared_ptr<IHeuristic<T>> heuristic)
     : heuristic_(std::move(heuristic)) {
     if (!heuristic_) {
         throw std::invalid_argument("Heuristic cannot be null");
     }
 }
 
-std::vector<Direction> MoveAdvisor::getPossibleMoves(int emptyX, int emptyY, int boardSize) const {
+template<PuzzleTile T>
+std::vector<Direction> MoveAdvisor<T>::getPossibleMoves(int emptyX, int emptyY, int boardSize) const {
     std::vector<Direction> moves;
     moves.reserve(4);
 
@@ -22,7 +26,8 @@ std::vector<Direction> MoveAdvisor::getPossibleMoves(int emptyX, int emptyY, int
     return moves;
 }
 
-std::pair<int, int> MoveAdvisor::getNewEmptyPosition(int emptyX, int emptyY, Direction dir) const noexcept {
+template<PuzzleTile T>
+std::pair<int, int> MoveAdvisor<T>::getNewEmptyPosition(int emptyX, int emptyY, Direction dir) const noexcept {
     switch (dir) {
         case Direction::Up:    return {emptyX, emptyY - 1};
         case Direction::Down:  return {emptyX, emptyY + 1};
@@ -32,29 +37,32 @@ std::pair<int, int> MoveAdvisor::getNewEmptyPosition(int emptyX, int emptyY, Dir
     return {emptyX, emptyY};
 }
 
-std::pair<Board<int>, std::pair<int, int>> MoveAdvisor::simulateMove(
-    const Board<int>& board, Direction dir, int emptyX, int emptyY) const {
+template<PuzzleTile T>
+std::pair<Board<T>, std::pair<int, int>> MoveAdvisor<T>::simulateMove(
+    const Board<T>& board, Direction dir, int emptyX, int emptyY) const {
 
-    Board<int> newBoard = board.getCopy();
+    Board<T> newBoard = board.getCopy();
     const auto [newEmptyX, newEmptyY] = getNewEmptyPosition(emptyX, emptyY, dir);
     newBoard.swap(emptyX, emptyY, newEmptyX, newEmptyY);
 
     return {std::move(newBoard), {newEmptyX, newEmptyY}};
 }
 
-bool MoveAdvisor::isReverseMove(Direction move, Direction lastMove) const noexcept {
+template<PuzzleTile T>
+bool MoveAdvisor<T>::isReverseMove(Direction move, Direction lastMove) const noexcept {
     return (move == Direction::Up && lastMove == Direction::Down) ||
            (move == Direction::Down && lastMove == Direction::Up) ||
            (move == Direction::Left && lastMove == Direction::Right) ||
            (move == Direction::Right && lastMove == Direction::Left);
 }
 
-MovePath MoveAdvisor::explorePaths(
-    const Board<int>& board, int emptyX, int emptyY, int depth,
+template<PuzzleTile T>
+MovePath MoveAdvisor<T>::explorePaths(
+    const Board<T>& board, int emptyX, int emptyY, int depth,
     std::vector<Direction> currentPath, std::optional<Direction> lastMove) const {
 
     struct State {
-        Board<int> board;
+        Board<T> board;
         int emptyX;
         int emptyY;
         std::vector<Direction> moves;
@@ -112,8 +120,9 @@ MovePath MoveAdvisor::explorePaths(
     return bestPath;
 }
 
-std::optional<Direction> MoveAdvisor::suggestMove(
-    const Board<int>& currentBoard, int emptyX, int emptyY) const {
+template<PuzzleTile T>
+std::optional<Direction> MoveAdvisor<T>::suggestMove(
+    const Board<T>& currentBoard, int emptyX, int emptyY) const {
 
     const std::vector<Direction> possibleMoves = getPossibleMoves(emptyX, emptyY, currentBoard.getSize());
 
@@ -137,9 +146,12 @@ std::optional<Direction> MoveAdvisor::suggestMove(
     return bestPath.moves.front();
 }
 
-void MoveAdvisor::setHeuristic(std::shared_ptr<IHeuristic> heuristic) {
+template<PuzzleTile T>
+void MoveAdvisor<T>::setHeuristic(std::shared_ptr<IHeuristic<T>> heuristic) {
     if (!heuristic) {
         throw std::invalid_argument("Heuristic cannot be null");
     }
     heuristic_ = std::move(heuristic);
 }
+
+#endif // MOVEADVISOR_TPP

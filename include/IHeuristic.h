@@ -2,10 +2,14 @@
 #define IHEURISTIC_H
 
 #include "Board.h"
+#include "PuzzleConcepts.h"
 
 /**
  * @brief Abstrakcyjna klasa bazowa dla heurystyk oceny planszy
+ * @tparam T Typ elementu planszy, musi spełniać PuzzleTile concept.
+ *           Typ musi być kopiowany, porównywalny i domyślnie inicjalizowalny.
  */
+template<PuzzleTile T>
 class IHeuristic {
 public:
     /**
@@ -18,7 +22,7 @@ public:
      * @param board Plansza do oceny
      * @return Wartość heurystyki (im mniejsza, tym bliżej rozwiązania)
      */
-    [[nodiscard]] virtual double calculate(const Board<int>& board) const = 0;
+    [[nodiscard]] virtual double calculate(const Board<T>& board) const = 0;
 };
 
 #endif

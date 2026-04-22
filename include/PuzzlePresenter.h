@@ -5,12 +5,14 @@
 #include "UndoRedoManager.h"
 #include "IGameSaver.h"
 #include "IHeuristic.h"
+#include "PuzzleConcepts.h"
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 
+template<PuzzleTile T>
 class MoveAdvisor;
 
 /**
@@ -54,7 +56,7 @@ private:
     PuzzleEngine<int> engine_;
     UndoRedoManager undoRedoManager_;
     std::unique_ptr<IGameSaver> saveHandler_;
-    std::unique_ptr<IHeuristic> heuristic_;
+    std::unique_ptr<IHeuristic<int>> heuristic_;
 
     InputMode inputMode_;
     std::string inputBuffer_;
@@ -85,12 +87,12 @@ public:
      * @brief Konstruktor tworzący prezenter z domyślną strategią zapisu
      * @param size Rozmiar planszy (N x N)
      * @param saver Wskaźnik do implementacji IGameSaver (domyślnie TextGameSaver)
-     * @param heuristic Wskaźnik do implementacji IHeuristic (domyślnie ManhattanDistance)
+     * @param heuristic Wskaźnik do implementacji IHeuristic<int> (domyślnie ManhattanDistance<int>)
      * @param savePath Domyślna ścieżka do pliku zapisu
      */
     explicit PuzzlePresenter(int size,
                              std::unique_ptr<IGameSaver> saver = nullptr,
-                             std::unique_ptr<IHeuristic> heuristic = nullptr,
+                             std::unique_ptr<IHeuristic<int>> heuristic = nullptr,
                              std::string savePath = "puzzle_save.txt");
 
     /**
@@ -171,7 +173,7 @@ public:
      * @brief Oblicza sugerowany ruch przy użyciu MoveAdvisor i ustawia podświetlenie
      * @param advisor Referencja do MoveAdvisor używanego do wyznaczenia ruchu
      */
-    void hint(const MoveAdvisor& advisor);
+    void hint(const MoveAdvisor<int>& advisor);
 
     /**
      * @brief Rozpoczyna tryb wprowadzania ścieżki do zapisu gry
@@ -252,9 +254,9 @@ public:
 
     /**
      * @brief Ustawia heurystykę używaną do obliczania wartości oceny planszy
-     * @param heuristic Wskaźnik do implementacji IHeuristic
+     * @param heuristic Wskaźnik do implementacji IHeuristic<int>
      */
-    void setHeuristic(std::unique_ptr<IHeuristic> heuristic);
+    void setHeuristic(std::unique_ptr<IHeuristic<int>> heuristic);
 
     /**
      * @brief Oblicza aktualną wartość heurystyki dla planszy

@@ -27,7 +27,7 @@ private:
     int lastCorrectTiles_;
     double lastHeuristicValue_;
     int boardSize_;
-    std::unique_ptr<IHeuristic> heuristic_;
+    std::unique_ptr<IHeuristic<int>> heuristic_;
     std::optional<std::pair<int, int>> hintPosition_;
 
     /**
@@ -102,15 +102,15 @@ public:
     /**
      * @brief Konstruktor tworzący renderer TUI
      * @param boardSize Rozmiar planszy (N x N)
-     * @param heuristic Wskaźnik do implementacji heurystyki (opcjonalny)
+     * @param heuristic Wskaźnik do implementacji heurystyki<int> (opcjonalny)
      */
-    explicit TuiRenderer(int boardSize, std::unique_ptr<IHeuristic> heuristic = nullptr);
+    explicit TuiRenderer(int boardSize, std::unique_ptr<IHeuristic<int>> heuristic = nullptr);
 
     /**
      * @brief Ustawia heurystykę do obliczania oceny planszy
-     * @param heuristic Wskaźnik do implementacji heurystyki
+     * @param heuristic Wskaźnik do implementacji heurystyki<int>
      */
-    void setHeuristic(std::unique_ptr<IHeuristic> heuristic);
+    void setHeuristic(std::unique_ptr<IHeuristic<int>> heuristic);
 
     void render(const Board<int>& board) override;
     void updateStats(const GameStats& stats, double heuristicValue = 0.0) override;

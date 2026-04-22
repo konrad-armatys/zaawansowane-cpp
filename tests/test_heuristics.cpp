@@ -12,7 +12,7 @@ void testManhattanDistance() {
 
 
     Board<int> solvedBoard(3, {1, 2, 3, 4, 5, 6, 7, 8, 0});
-    ManhattanDistance manhattan;
+    ManhattanDistance<int> manhattan;
 
     double score = manhattan.calculate(solvedBoard);
     assert(score == 0.0 && "Solved board should have Manhattan distance of 0");
@@ -36,7 +36,7 @@ void testHammingDistance() {
 
 
     Board<int> solvedBoard(3, {1, 2, 3, 4, 5, 6, 7, 8, 0});
-    HammingDistance hamming;
+    HammingDistance<int> hamming;
 
     double score = hamming.calculate(solvedBoard);
     assert(score == 0.0 && "Solved board should have Hamming distance of 0");
@@ -61,8 +61,8 @@ void testLookAhead() {
 
     Board<int> nearSolutionBoard(3, {1, 2, 3, 4, 5, 6, 7, 0, 8});
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
-    LookAhead lookAhead(heuristic);
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
+    LookAhead<int> lookAhead(heuristic);
 
 
     int emptyX = 1, emptyY = 2;
@@ -87,7 +87,7 @@ void testLookAhead() {
     std::cout << "  Best move found!" << std::endl;
 
 
-    auto hammingHeuristic = std::make_shared<HammingDistance>();
+    auto hammingHeuristic = std::make_shared<HammingDistance<int>>();
     lookAhead.setHeuristic(hammingHeuristic);
 
     evaluations = lookAhead.evaluateMoves(nearSolutionBoard, emptyX, emptyY);

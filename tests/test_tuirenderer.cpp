@@ -32,7 +32,7 @@ void testBasicRendering() {
  */
 void testStatsUpdate() {
     const int boardSize = 3;
-    TuiRenderer renderer(boardSize, std::make_unique<ManhattanDistance>());
+    TuiRenderer renderer(boardSize, std::make_unique<ManhattanDistance<int>>());
 
     GameStats stats(boardSize);
     stats.movesCount.set(10);
@@ -99,7 +99,7 @@ void testLargeBoard() {
  */
 void testWithHeuristic() {
     const int boardSize = 4;
-    TuiRenderer renderer(boardSize, std::make_unique<ManhattanDistance>());
+    TuiRenderer renderer(boardSize, std::make_unique<ManhattanDistance<int>>());
 
     PuzzleEngine<int> engine(boardSize);
     engine.shuffle();
@@ -108,7 +108,7 @@ void testWithHeuristic() {
     const auto& stats = engine.getStats();
 
     std::cout << "Test 5: Renderowanie z heurystyką Manhattan Distance" << std::endl;
-    auto heuristic = std::make_unique<ManhattanDistance>();
+    auto heuristic = std::make_unique<ManhattanDistance<int>>();
     renderer.updateStats(stats, heuristic->calculate(board));
     renderer.showMessage("Plansza potasowana - wartość heurystyki wyświetlona");
     renderer.render(board);

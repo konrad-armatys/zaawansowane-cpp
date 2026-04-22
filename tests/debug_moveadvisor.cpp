@@ -55,7 +55,7 @@ int main() {
     std::cout << "Initial board (needs 1 move to solve):\n";
     printBoard(board);
 
-    auto heuristic = std::make_shared<ManhattanDistance>();
+    auto heuristic = std::make_shared<ManhattanDistance<int>>();
 
     int emptyX = 1, emptyY = 2;
 
@@ -94,7 +94,7 @@ int main() {
     }
 
     std::cout << "=== MoveAdvisor suggestion ===\n";
-    MoveAdvisor advisor(heuristic);
+    MoveAdvisor<int> advisor(heuristic);
     auto suggestion = advisor.suggestMove(board, emptyX, emptyY);
 
     if (suggestion.has_value()) {

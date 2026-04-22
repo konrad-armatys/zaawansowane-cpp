@@ -1,14 +1,19 @@
+#ifndef LOOKAHEAD_TPP
+#define LOOKAHEAD_TPP
+
 #include "LookAhead.h"
 #include <algorithm>
 
-LookAhead::LookAhead(std::shared_ptr<IHeuristic> heuristic)
+template<PuzzleTile T>
+LookAhead<T>::LookAhead(std::shared_ptr<IHeuristic<T>> heuristic)
     : heuristic_(std::move(heuristic)) {
     if (!heuristic_) {
         throw std::invalid_argument("Heuristic cannot be null");
     }
 }
 
-std::vector<Direction> LookAhead::getPossibleMoves(int emptyX, int emptyY, int boardSize) const {
+template<PuzzleTile T>
+std::vector<Direction> LookAhead<T>::getPossibleMoves(int emptyX, int emptyY, int boardSize) const {
     std::vector<Direction> moves;
     moves.reserve(4);
 
@@ -20,7 +25,8 @@ std::vector<Direction> LookAhead::getPossibleMoves(int emptyX, int emptyY, int b
     return moves;
 }
 
-std::pair<int, int> LookAhead::getNewEmptyPosition(int emptyX, int emptyY, Direction dir) const noexcept {
+template<PuzzleTile T>
+std::pair<int, int> LookAhead<T>::getNewEmptyPosition(int emptyX, int emptyY, Direction dir) const noexcept {
     switch (dir) {
         case Direction::Up:    return {emptyX, emptyY - 1};
         case Direction::Down:  return {emptyX, emptyY + 1};
@@ -30,31 +36,33 @@ std::pair<int, int> LookAhead::getNewEmptyPosition(int emptyX, int emptyY, Direc
     return {emptyX, emptyY};
 }
 
-Board<int> LookAhead::simulateMove(const Board<int>& board, Direction dir, int emptyX, int emptyY) const {
-    Board<int> newBoard = board.getCopy();
+template<PuzzleTile T>
+Board<T> LookAhead<T>::simulateMove(const Board<T>& board, Direction dir, int emptyX, int emptyY) const {
+    Board<T> newBoard = board.getCopy();
     const auto [newEmptyX, newEmptyY] = getNewEmptyPosition(emptyX, emptyY, dir);
     newBoard.swap(emptyX, emptyY, newEmptyX, newEmptyY);
     return newBoard;
 }
 
-std::vector<MoveEvaluation> LookAhead::evaluateMoves(const Board<int>& board, int emptyX, int emptyY) const {
+template<PuzzleTile T>
+std::vector<MoveEvaluation> LookAhead<T>::evaluateMoves(const Board<T>& board, int emptyX, int emptyY) const {
     const std::vector<Direction> possibleMoves = getPossibleMoves(emptyX, emptyY, board.getSize());
     std::vector<MoveEvaluation> evaluations;
     evaluations.reserve(possibleMoves.size());
 
     for (const Direction dir : possibleMoves) {
-        const Board<int> resultBoard = simulateMove(board, dir, emptyX, emptyY);
+        const Board<T> resultBoard = simulateMove(board, dir, emptyX, emptyY);
         const double score = heuristic_->calculate(resultBoard);
         evaluations.push_back({dir, score});
     }
-
 
     std::sort(evaluations.begin(), evaluations.end());
 
     return evaluations;
 }
 
-std::optional<Direction> LookAhead::getBestMove(const Board<int>& board, int emptyX, int emptyY) const {
+template<PuzzleTile T>
+std::optional<Direction> LookAhead<T>::getBestMove(const Board<T>& board, int emptyX, int emptyY) const {
     const std::vector<MoveEvaluation> evaluations = evaluateMoves(board, emptyX, emptyY);
 
     if (evaluations.empty()) {
@@ -64,9 +72,12 @@ std::optional<Direction> LookAhead::getBestMove(const Board<int>& board, int emp
     return evaluations.front().direction;
 }
 
-void LookAhead::setHeuristic(std::shared_ptr<IHeuristic> heuristic) {
+template<PuzzleTile T>
+void LookAhead<T>::setHeuristic(std::shared_ptr<IHeuristic<T>> heuristic) {
     if (!heuristic) {
         throw std::invalid_argument("Heuristic cannot be null");
     }
     heuristic_ = std::move(heuristic);
 }
+
+#endif // LOOKAHEAD_TPP
