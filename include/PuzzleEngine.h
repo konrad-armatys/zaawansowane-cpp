@@ -123,6 +123,12 @@ public:
     const GameStats& getStats() const noexcept;
 
     /**
+     * @brief Pobiera statystyki gry (wersja non-const)
+     * @return Referencja do statystyk
+     */
+    GameStats& getStats() noexcept;
+
+    /**
      * @brief Resetuje grę do stanu początkowego
      * @param emptyValue Wartość reprezentująca puste pole
      */

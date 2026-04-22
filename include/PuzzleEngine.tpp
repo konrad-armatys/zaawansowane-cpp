@@ -253,6 +253,12 @@ const GameStats& PuzzleEngine<T>::getStats() const noexcept {
 
 template <typename T>
 requires std::copyable<T>
+GameStats& PuzzleEngine<T>::getStats() noexcept {
+    return stats_;
+}
+
+template <typename T>
+requires std::copyable<T>
 void PuzzleEngine<T>::reset(const T& emptyValue) {
     const int size = board_.getSize();
 

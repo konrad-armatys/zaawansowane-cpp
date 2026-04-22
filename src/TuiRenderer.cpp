@@ -173,7 +173,7 @@ void TuiRenderer::render(const Board<int>& board) {
 
     mainContent.push_back(separator());
     mainContent.push_back(
-        text("Sterowanie: ↑↓←→ - ruch | U - cofnij | R - ponów | S - tasuj | Q - wyjście") |
+        text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
         dim | center
     );
 
