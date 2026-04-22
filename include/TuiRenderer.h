@@ -5,39 +5,13 @@
 #include "IHeuristic.h"
 #include "Board.h"
 #include "GameStats.h"
+#include "PuzzlePresenter.h"
 #include <memory>
 #include <string>
 #include <optional>
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
-
-class PuzzlePresenter;
-
-/**
- * @brief Tryb wprowadzania danych przez użytkownika
- */
-enum class ViewInputMode {
-    None,
-    Save,
-    Load
-};
-
-/**
- * @brief Struktura agregująca stan potrzebny do wyrenderowania widoku
- *
- * Jest to kontrakt między prezenterem a widokiem: wszystkie dane niezbędne do
- * narysowania kompletnego ekranu gry są dostarczane w jednym obiekcie.
- */
-struct ViewState {
-    const Board<int>& board;
-    const GameStats& stats;
-    double heuristicValue;
-    std::string statusMessage;
-    ViewInputMode inputMode;
-    std::string inputBuffer;
-    std::optional<std::pair<int, int>> hintPosition;
-};
 
 /**
  * @brief Implementacja TUI (Text User Interface) dla gry N-Puzzle używająca FTXUI
@@ -107,7 +81,7 @@ private:
      * @param buffer Zawartość bufora wprowadzania
      * @return Element DOM reprezentujący pole wprowadzania (pusty, gdy tryb None)
      */
-    ftxui::Element createInputPanel(ViewInputMode mode, const std::string& buffer) const;
+    ftxui::Element createInputPanel(InputMode mode, const std::string& buffer) const;
 
     /**
      * @brief Tworzy element DOM z tekstem pomocy sterowania
@@ -157,14 +131,14 @@ public:
 
     /**
      * @brief Buduje kompletny element UI gry na podstawie stanu widoku
-     * @param state Zagregowany stan widoku (plansza, statystyki, wiadomości, tryb wprowadzania)
+     * @param state Zagregowany stan widoku dostarczony przez prezenter
      * @return Element FTXUI gotowy do renderowania w głównej pętli
      */
-    ftxui::Element createGameElement(const ViewState& state);
+    ftxui::Element createGameElement(const PuzzleViewState& state);
 
     /**
-     * @brief Buduje kompletny element UI gry na podstawie stanu prezentera
-     * @param presenter Prezenter dostarczający dane do renderowania
+     * @brief Buduje kompletny element UI gry, pobierając stan z prezentera
+     * @param presenter Prezenter dostarczający dane do renderowania przez getViewState()
      * @return Element FTXUI gotowy do renderowania w głównej pętli
      */
     ftxui::Element createGameElement(const PuzzlePresenter& presenter);

@@ -192,12 +192,12 @@ Element TuiRenderer::createMessagePanel() const {
            bold;
 }
 
-Element TuiRenderer::createInputPanel(ViewInputMode mode, const std::string& buffer) const {
-    if (mode == ViewInputMode::None) {
+Element TuiRenderer::createInputPanel(InputMode mode, const std::string& buffer) const {
+    if (mode == InputMode::None) {
         return text("");
     }
 
-    std::string modeLabel = (mode == ViewInputMode::Save) ? "Zapisz:" : "Wczytaj:";
+    std::string modeLabel = (mode == InputMode::Save) ? "Zapisz:" : "Wczytaj:";
 
     return hbox({
         text(modeLabel) | bold,
@@ -212,7 +212,7 @@ Element TuiRenderer::createControlsPanel() const {
            dim | center;
 }
 
-Element TuiRenderer::createGameElement(const ViewState& state) {
+Element TuiRenderer::createGameElement(const PuzzleViewState& state) {
 
     lastMovesCount_ = state.stats.movesCount.get();
     lastUndoCount_ = state.stats.undoCount.get();
@@ -223,12 +223,8 @@ Element TuiRenderer::createGameElement(const ViewState& state) {
 
     const int boardSize = state.board.getSize();
 
-
     Element gridElement = createGrid(state.board);
-
-
     Element statsElement = createStatsPanel(state.stats, state.heuristicValue, boardSize);
-
 
     Elements mainContent;
     mainContent.push_back(text("N-PUZZLE GAME") | bold | color(Color::Cyan) | center);
@@ -245,7 +241,7 @@ Element TuiRenderer::createGameElement(const ViewState& state) {
         mainContent.push_back(createMessagePanel(state.statusMessage));
     }
 
-    if (state.inputMode != ViewInputMode::None) {
+    if (state.inputMode != InputMode::None) {
         mainContent.push_back(separator());
         mainContent.push_back(createInputPanel(state.inputMode, state.inputBuffer));
     }
@@ -257,25 +253,7 @@ Element TuiRenderer::createGameElement(const ViewState& state) {
 }
 
 Element TuiRenderer::createGameElement(const PuzzlePresenter& presenter) {
-    const auto& board = presenter.getEngine().getBoard();
-    const auto& stats = presenter.getEngine().getStats();
-
-    double heuristicValue = 0.0;
-    if (heuristic_) {
-        heuristicValue = heuristic_->calculate(board);
-    }
-
-    ViewState state{
-        board,
-        stats,
-        heuristicValue,
-        lastMessage_,
-        ViewInputMode::None,
-        "",
-        hintPosition_
-    };
-
-    return createGameElement(state);
+    return createGameElement(presenter.getViewState());
 }
 
 void TuiRenderer::render(const Board<int>& board) {
