@@ -70,8 +70,8 @@ Element TuiRenderer::createGrid(const Board<int>& board) const {
         int displayStart = 0;
         int displayEnd = std::min(size, 20);
 
-        rows.push_back(text("Showing rows " + std::to_string(displayStart) + "-" +
-                           std::to_string(displayEnd - 1) + " of " + std::to_string(size)) |
+        rows.push_back(text("Wyświetlam wiersze " + std::to_string(displayStart) + "-" +
+                           std::to_string(displayEnd - 1) + " z " + std::to_string(size)) |
                       bold | color(Color::Yellow));
 
         for (int y = displayStart; y < displayEnd; ++y) {
@@ -228,7 +228,7 @@ Element TuiRenderer::createGameElement(const PuzzleViewState& state) {
     Element statsElement = createStatsPanel(state.stats, state.heuristicValue, boardSize);
 
     Elements mainContent;
-    mainContent.push_back(text("N-PUZZLE GAME") | bold | color(Color::Cyan) | center);
+    mainContent.push_back(text("UKŁADANKI Z LAT DZIECINNYCH") | bold | color(Color::Cyan) | center);
     mainContent.push_back(separator());
 
     Elements gameArea;
@@ -269,7 +269,7 @@ void TuiRenderer::render(const Board<int>& board) {
     Elements mainContent;
 
     mainContent.push_back(
-        text("N-PUZZLE GAME") |
+        text("UKŁADANKI Z LAT DZIECINNYCH") |
         bold |
         color(Color::Cyan) |
         center
