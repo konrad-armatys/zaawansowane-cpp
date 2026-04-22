@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+enable_testing()
+
 # --- Fetch FTXUI --------------------------------------------------------------
 include(FetchContent)
 
@@ -28,7 +30,6 @@ FetchContent_MakeAvailable(ftxui)
 
 add_executable(ftxui-starter
   src/main.cpp
-  src/UndoRedo.cpp
   src/BinaryGameSaver.cpp
   src/TextGameSaver.cpp
   src/UndoRedoManager.cpp
@@ -45,26 +46,31 @@ target_link_libraries(ftxui-starter
 
 add_executable(test-stats tests/test_stats.cpp)
 target_include_directories(test-stats PRIVATE include)
+add_test(NAME TestStats COMMAND test-stats)
 
 add_executable(test-engine tests/test_engine.cpp)
 target_include_directories(test-engine PRIVATE include)
+add_test(NAME TestEngine COMMAND test-engine)
 
 add_executable(test-heuristics
   tests/test_heuristics.cpp
   src/UndoRedo.cpp
 )
 target_include_directories(test-heuristics PRIVATE include)
+add_test(NAME TestHeuristics COMMAND test-heuristics)
 
 add_executable(test-moveadvisor
   tests/test_moveadvisor.cpp
 )
 target_include_directories(test-moveadvisor PRIVATE include)
+add_test(NAME TestMoveAdvisor COMMAND test-moveadvisor)
 
 add_executable(test-undoredomanager
   tests/test_undoredomanager.cpp
   src/UndoRedoManager.cpp
 )
 target_include_directories(test-undoredomanager PRIVATE include)
+add_test(NAME TestUndoRedoManager COMMAND test-undoredomanager)
 
 add_executable(debug-moveadvisor
   tests/debug_moveadvisor.cpp
@@ -105,6 +111,7 @@ add_executable(test-gamesaver
   src/UndoRedoManager.cpp
 )
 target_include_directories(test-gamesaver PRIVATE include)
+add_test(NAME TestGameSaver COMMAND test-gamesaver)
 
 add_executable(example-gamesaver
   examples/example_gamesaver.cpp
@@ -133,6 +140,7 @@ add_executable(test-textgamesaver
   src/UndoRedoManager.cpp
 )
 target_include_directories(test-textgamesaver PRIVATE include)
+add_test(NAME TestTextGameSaver COMMAND test-textgamesaver)
 
 add_executable(test-tuirenderer
   tests/test_tuirenderer.cpp
@@ -149,6 +157,7 @@ target_link_libraries(test-tuirenderer
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
 )
+add_test(NAME TestTuiRenderer COMMAND test-tuirenderer)
 
 add_executable(example-puzzlepresenter
   examples/example_puzzlepresenter.cpp
