@@ -2,9 +2,8 @@
 #include "TextGameSaver.h"
 #include "ManhattanDistance.h"
 #include "MoveAdvisor.h"
-#include <cstdlib>
+#include "PathResolver.h"
 #include <filesystem>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -17,8 +16,7 @@ PuzzlePresenter::PuzzlePresenter(int size,
       undoRedoManager_(100),
       saveHandler_(saver ? std::move(saver) : std::make_unique<TextGameSaver>()),
       heuristic_(heuristic ? std::move(heuristic) : std::make_unique<ManhattanDistance<int>>()),
-      inputMode_(InputMode::None),
-      inputBuffer_(""),
+      inputHandler_(),
       statusMessage_("Witaj w N-Puzzle! Użyj strzałek lub WSAD do gry"),
       savePath_(std::move(savePath)),
       hintPosition_(std::nullopt),
@@ -210,44 +208,43 @@ void PuzzlePresenter::hint(const MoveAdvisor<int>& advisor) {
 }
 
 void PuzzlePresenter::beginSaveMode() {
-    inputMode_ = InputMode::Save;
-    inputBuffer_ = savePath_;
+    inputHandler_.beginSaveMode(savePath_);
     statusMessage_ = "Podaj ścieżkę do pliku zapisu (ESC - anuluj, ENTER - zapisz):";
     notifyChanged();
 }
 
 void PuzzlePresenter::beginLoadMode() {
-    inputMode_ = InputMode::Load;
-    inputBuffer_ = savePath_;
+    inputHandler_.beginLoadMode(savePath_);
     statusMessage_ = "Podaj ścieżkę do pliku wczytania (ESC - anuluj, ENTER - wczytaj):";
     notifyChanged();
 }
 
 void PuzzlePresenter::confirmInputMode() {
-    if (inputBuffer_.empty()) {
+    InputMode pendingMode = inputHandler_.getInputMode();
+    std::string bufferedPath = inputHandler_.getInputBuffer();
+
+    if (!inputHandler_.confirm()) {
         statusMessage_ = "Błąd: ścieżka nie może być pusta";
-        inputMode_ = InputMode::None;
         notifyChanged();
         return;
     }
 
-    std::string resolvedPath = normalizePath(inputBuffer_);
+    std::string resolvedPath = PathResolver::normalizePath(bufferedPath);
 
     try {
-        if (inputMode_ == InputMode::Save) {
+        if (pendingMode == InputMode::Save) {
             try {
                 auto parentPath = std::filesystem::path(resolvedPath).parent_path();
                 if (!parentPath.empty() && !std::filesystem::exists(parentPath)) {
                     std::filesystem::create_directories(parentPath);
                 }
             } catch (...) {
-
             }
 
             saveGame(resolvedPath);
             savePath_ = resolvedPath;
             statusMessage_ = "Gra zapisana do " + resolvedPath;
-        } else if (inputMode_ == InputMode::Load) {
+        } else if (pendingMode == InputMode::Load) {
             loadGame(resolvedPath);
             savePath_ = resolvedPath;
             statusMessage_ = "Gra wczytana z " + resolvedPath;
@@ -256,45 +253,41 @@ void PuzzlePresenter::confirmInputMode() {
         statusMessage_ = std::string("Błąd: ") + e.what();
     }
 
-    inputMode_ = InputMode::None;
     notifyChanged();
 }
 
 void PuzzlePresenter::cancelInputMode() {
-    inputMode_ = InputMode::None;
-    inputBuffer_.clear();
+    inputHandler_.cancel();
     statusMessage_ = "Anulowano";
     notifyChanged();
 }
 
 void PuzzlePresenter::handleCharacter(char c) {
-    if (inputMode_ == InputMode::None) {
+    if (!inputHandler_.isInInputMode()) {
         return;
     }
-    inputBuffer_ += c;
+    inputHandler_.handleCharacter(c);
     notifyChanged();
 }
 
 void PuzzlePresenter::inputBackspace() {
-    if (inputMode_ == InputMode::None) {
+    if (!inputHandler_.isInInputMode()) {
         return;
     }
-    if (!inputBuffer_.empty()) {
-        inputBuffer_.pop_back();
-        notifyChanged();
-    }
+    inputHandler_.inputBackspace();
+    notifyChanged();
 }
 
 bool PuzzlePresenter::isInInputMode() const noexcept {
-    return inputMode_ != InputMode::None;
+    return inputHandler_.isInInputMode();
 }
 
 InputMode PuzzlePresenter::getInputMode() const noexcept {
-    return inputMode_;
+    return inputHandler_.getInputMode();
 }
 
 const std::string& PuzzlePresenter::getInputBuffer() const noexcept {
-    return inputBuffer_;
+    return inputHandler_.getInputBuffer();
 }
 
 const std::string& PuzzlePresenter::getStatusMessage() const noexcept {
@@ -363,90 +356,10 @@ PuzzleViewState PuzzlePresenter::getViewState() const {
         engine_.getBoard(),
         engine_.getStats(),
         statusMessage_,
-        inputMode_,
-        inputBuffer_,
+        inputHandler_.getInputMode(),
+        inputHandler_.getInputBuffer(),
         getHeuristicValue(),
         hintPosition_
     };
 }
 
-std::string PuzzlePresenter::normalizePath(const std::string& path) {
-    std::string result = path;
-
-    if (!result.empty() && result[0] == '~') {
-        const char* home = std::getenv("HOME");
-        if (home) {
-            result = std::string(home) + result.substr(1);
-        }
-    }
-
-    try {
-        if (std::filesystem::path(result).is_absolute()) {
-            return result;
-        }
-    } catch (...) {
-
-    }
-
-    std::ifstream test(result);
-    if (test.good()) {
-        test.close();
-        return result;
-    }
-
-    std::string parentPath = "../" + result;
-    std::ifstream parentTest(parentPath);
-    if (parentTest.good()) {
-        parentTest.close();
-        return parentPath;
-    }
-
-    return result;
-}
-
-std::string PuzzlePresenter::findSaveFile(const std::string& filename) {
-    std::ifstream file(filename);
-    if (file.good()) {
-        file.close();
-        return filename;
-    }
-
-    std::string parentPath = "../" + filename;
-    std::ifstream parentFile(parentPath);
-    if (parentFile.good()) {
-        parentFile.close();
-        return parentPath;
-    }
-
-    return "";
-}
-
-std::optional<std::string> PuzzlePresenter::detectSaveFile(const std::string& filename) {
-    std::string found = findSaveFile(filename);
-    if (found.empty()) {
-        return std::nullopt;
-    }
-    return found;
-}
-
-std::optional<int> PuzzlePresenter::probeSavedBoardSize(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.good()) {
-        return std::nullopt;
-    }
-
-    std::string firstLine;
-    if (!std::getline(file, firstLine)) {
-        return std::nullopt;
-    }
-
-    try {
-        int value = std::stoi(firstLine);
-        if (value <= 0) {
-            return std::nullopt;
-        }
-        return value;
-    } catch (...) {
-        return std::nullopt;
-    }
-}

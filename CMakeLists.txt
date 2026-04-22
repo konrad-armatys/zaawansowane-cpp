@@ -49,6 +49,8 @@ target_include_directories(core_logic PRIVATE ${COMMON_INCLUDE_DIR})
 add_library(tui_lib STATIC
   src/TuiRenderer.cpp
   src/PuzzlePresenter.cpp
+  src/PathResolver.cpp
+  src/InputModeHandler.cpp
   src/ui/TileRenderer.cpp
   src/ui/GridRenderer.cpp
   src/ui/StatsPanelRenderer.cpp

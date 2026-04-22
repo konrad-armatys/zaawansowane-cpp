@@ -2,6 +2,8 @@
 #define PUZZLEPRESENTER_H
 
 #include "InputMode.h"
+#include "InputModeHandler.h"
+#include "PathResolver.h"
 #include "PuzzleEngine.h"
 #include "UndoRedoManager.h"
 #include "IGameSaver.h"
@@ -47,8 +49,7 @@ private:
     std::unique_ptr<IGameSaver> saveHandler_;
     std::unique_ptr<IHeuristic<int>> heuristic_;
 
-    InputMode inputMode_;
-    std::string inputBuffer_;
+    InputModeHandler inputHandler_;
     std::string statusMessage_;
     std::string savePath_;
     std::optional<std::pair<int, int>> hintPosition_;
@@ -286,28 +287,36 @@ public:
      * @param path Ścieżka do normalizacji
      * @return Znormalizowana ścieżka
      */
-    static std::string normalizePath(const std::string& path);
+    static std::string normalizePath(const std::string& path) {
+        return PathResolver::normalizePath(path);
+    }
 
     /**
      * @brief Sprawdza czy plik istnieje w katalogu bieżącym lub nadrzędnym
      * @param filename Nazwa pliku do sprawdzenia
      * @return Ścieżka do pliku jeśli istnieje, pusty string w przeciwnym wypadku
      */
-    static std::string findSaveFile(const std::string& filename);
+    static std::string findSaveFile(const std::string& filename) {
+        return PathResolver::findSaveFile(filename);
+    }
 
     /**
      * @brief Wykrywa istniejący plik zapisu w bieżącym lub nadrzędnym katalogu
      * @param filename Nazwa poszukiwanego pliku (np. "puzzle_save.txt")
      * @return std::optional ze ścieżką do pliku lub std::nullopt gdy plik nie istnieje
      */
-    static std::optional<std::string> detectSaveFile(const std::string& filename);
+    static std::optional<std::string> detectSaveFile(const std::string& filename) {
+        return PathResolver::detectSaveFile(filename);
+    }
 
     /**
      * @brief Odczytuje rozmiar planszy zapisanej w pierwszej linii pliku zapisu
      * @param filename Ścieżka do pliku zapisu
      * @return std::optional z rozmiarem planszy lub std::nullopt gdy odczyt się nie powiódł
      */
-    static std::optional<int> probeSavedBoardSize(const std::string& filename);
+    static std::optional<int> probeSavedBoardSize(const std::string& filename) {
+        return PathResolver::probeSavedBoardSize(filename);
+    }
 };
 
 #endif
