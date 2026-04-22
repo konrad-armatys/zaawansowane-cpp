@@ -49,7 +49,7 @@ TEST_F(GridRendererTest, TestTruncationMessage) {
 
     auto board = makeBoard(25);
     auto element = renderer->render(board);
-    EXPECT_NO_THROW({ element; });
+    EXPECT_NO_THROW({ (void)element; });
 }
 
 int main(int argc, char **argv) {

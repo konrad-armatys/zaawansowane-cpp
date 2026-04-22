@@ -32,9 +32,9 @@ TEST_F(TileRendererTest, TestTileWidth) {
     auto largeBoard = renderer.render(1, 0, 0, 25);
 
 
-    EXPECT_NO_THROW({ smallBoard; });
-    EXPECT_NO_THROW({ mediumBoard; });
-    EXPECT_NO_THROW({ largeBoard; });
+    EXPECT_NO_THROW({ (void)smallBoard; });
+    EXPECT_NO_THROW({ (void)mediumBoard; });
+    EXPECT_NO_THROW({ (void)largeBoard; });
 }
 
 TEST_F(TileRendererTest, TestHintPosition) {
@@ -56,13 +56,13 @@ TEST_F(TileRendererTest, TestHintPosition) {
 TEST_F(TileRendererTest, TestRenderEmptyTile) {
 
     auto emptyTile = renderer.render(0, 0, 0, 3);
-    EXPECT_NO_THROW({ emptyTile; });
+    EXPECT_NO_THROW({ (void)emptyTile; });
 }
 
 TEST_F(TileRendererTest, TestRenderCorrectTile) {
 
     auto correctTile = renderer.render(1, 0, 0, 3);
-    EXPECT_NO_THROW({ correctTile; });
+    EXPECT_NO_THROW({ (void)correctTile; });
 }
 
 int main(int argc, char **argv) {
