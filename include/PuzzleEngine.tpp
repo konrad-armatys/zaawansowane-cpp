@@ -260,24 +260,7 @@ GameStats& PuzzleEngine<T>::getStats() noexcept {
 template <typename T>
 requires std::copyable<T>
 void PuzzleEngine<T>::reset(const T& emptyValue) {
-    const int size = board_.getSize();
-
-    // Ustaw planszę w stanie rozwiązanym
-    for (int y = 0; y < size; ++y) {
-        for (int x = 0; x < size; ++x) {
-            if (y == size - 1 && x == size - 1) {
-                board_.at(x, y) = emptyValue;
-            } else {
-                board_.at(x, y) = static_cast<T>(y * size + x + 1);
-            }
-        }
-    }
-
-    emptyX_ = size - 1;
-    emptyY_ = size - 1;
-
-    stats_.reset();
-    stats_.update(board_);
+    shuffle(emptyValue);
 }
 
 template <typename T>
