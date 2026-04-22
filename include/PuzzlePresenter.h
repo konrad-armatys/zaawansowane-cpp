@@ -1,6 +1,7 @@
 #ifndef PUZZLEPRESENTER_H
 #define PUZZLEPRESENTER_H
 
+#include "InputMode.h"
 #include "PuzzleEngine.h"
 #include "UndoRedoManager.h"
 #include "IGameSaver.h"
@@ -14,18 +15,6 @@
 
 template<PuzzleTile T>
 class MoveAdvisor;
-
-/**
- * @brief Tryb wejścia użytkownika (input mode)
- *
- * Używany przez prezenter do śledzenia stanu interakcji z użytkownikiem
- * w kontekście zapisu/wczytania gry.
- */
-enum class InputMode {
-    None,
-    Save,
-    Load
-};
 
 /**
  * @brief Struktura zawierająca wszystkie dane potrzebne do wyrenderowania widoku

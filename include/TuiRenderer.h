@@ -25,44 +25,13 @@
 class TuiRenderer : public IPuzzleView {
 private:
     std::string lastMessage_;
-    int lastMovesCount_;
-    int lastUndoCount_;
-    int lastCorrectTiles_;
-    double lastHeuristicValue_;
     int boardSize_;
     std::unique_ptr<IHeuristic<int>> heuristic_;
     std::optional<std::pair<int, int>> hintPosition_;
     std::shared_ptr<GameLayoutComposer> layoutComposer_;
     std::shared_ptr<TileRenderer> tileRenderer_;
 
-    /**
-     * @brief Tworzy element DOM panelu statystyk (używa ostatnio zapamiętanych wartości)
-     * @return Element DOM reprezentujący panel statystyk
-     */
-    ftxui::Element createStatsPanel() const;
-
-    /**
-     * @brief Tworzy element DOM dla wiadomości (używa ostatnio zapamiętanej wartości)
-     * @return Element DOM reprezentujący wiadomość
-     */
-    ftxui::Element createMessagePanel() const;
-
-    /**
-     * @brief Tworzy element DOM z tekstem pomocy sterowania
-     * @return Element DOM reprezentujący pasek pomocy
-     */
-    ftxui::Element createControlsPanel() const;
-
 public:
-    /**
-     * @brief Sprawdza czy kafelek jest na właściwym miejscu
-     * @param value Wartość kafelka
-     * @param x Współrzędna x
-     * @param y Współrzędna y
-     * @param boardSize Rozmiar planszy
-     * @return true jeśli kafelek jest na właściwym miejscu
-     */
-    bool isTileCorrect(int value, int x, int y, int boardSize) const;
     /**
      * @brief Konstruktor tworzący renderer TUI
      * @param boardSize Rozmiar planszy (N x N)

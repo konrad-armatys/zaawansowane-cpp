@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PuzzlePresenter.h"
+#include "InputMode.h"
 #include <string>
 #include <ftxui/dom/elements.hpp>
 
