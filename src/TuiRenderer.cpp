@@ -1,6 +1,12 @@
 #include "TuiRenderer.h"
 #include "PuzzlePresenter.h"
 #include "ManhattanDistance.h"
+#include "ui/TileRenderer.h"
+#include "ui/GridRenderer.h"
+#include "ui/StatsPanelRenderer.h"
+#include "ui/MessagePanelRenderer.h"
+#include "ui/ControlsPanelRenderer.h"
+#include "ui/GameLayoutComposer.h"
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -17,7 +23,17 @@ TuiRenderer::TuiRenderer(int boardSize, std::unique_ptr<IHeuristic<int>> heurist
       lastHeuristicValue_(0.0),
       boardSize_(boardSize),
       heuristic_(std::move(heuristic)),
-      hintPosition_(std::nullopt) {}
+      hintPosition_(std::nullopt) {
+    tileRenderer_ = std::make_shared<TileRenderer>();
+    auto gridRenderer = std::make_shared<GridRenderer>(tileRenderer_);
+    auto statsRenderer = std::make_shared<StatsPanelRenderer>();
+    auto messageRenderer = std::make_shared<MessagePanelRenderer>();
+    auto controlsRenderer = std::make_shared<ControlsPanelRenderer>();
+
+    layoutComposer_ = std::make_shared<GameLayoutComposer>(
+        gridRenderer, statsRenderer, messageRenderer, controlsRenderer
+    );
+}
 
 void TuiRenderer::setHeuristic(std::unique_ptr<IHeuristic<int>> heuristic) {
     heuristic_ = std::move(heuristic);
@@ -31,109 +47,6 @@ bool TuiRenderer::isTileCorrect(int value, int x, int y, int boardSize) const {
     return value == expectedValue;
 }
 
-Element TuiRenderer::createTile(int value, int x, int y, int boardSize) const {
-    std::ostringstream oss;
-    int width = 3;
-    if (boardSize > 10) width = 4;
-    if (boardSize > 31) width = 5;
-
-    if (value == 0) {
-        oss << std::setw(width) << " ";
-        return text(oss.str()) | border | bgcolor(Color::Black);
-    }
-
-    oss << std::setw(width) << value;
-
-    Element tileElement = text(oss.str()) | border;
-
-
-    if (hintPosition_.has_value() && hintPosition_->first == x && hintPosition_->second == y) {
-        tileElement = tileElement | bgcolor(Color::Yellow) | color(Color::Black) | bold;
-    }
-
-    else if (isTileCorrect(value, x, y, boardSize)) {
-        tileElement = tileElement | bgcolor(Color::Green) | color(Color::Black);
-    }
-
-    else {
-        tileElement = tileElement | bgcolor(Color::Blue) | color(Color::White);
-    }
-
-    return tileElement;
-}
-
-Element TuiRenderer::createGrid(const Board<int>& board) const {
-    const int size = board.getSize();
-
-    if (size > 20) {
-        Elements rows;
-        int displayStart = 0;
-        int displayEnd = std::min(size, 20);
-
-        rows.push_back(text("Wyświetlam wiersze " + std::to_string(displayStart) + "-" +
-                           std::to_string(displayEnd - 1) + " z " + std::to_string(size)) |
-                      bold | color(Color::Yellow));
-
-        for (int y = displayStart; y < displayEnd; ++y) {
-            Elements row;
-            for (int x = 0; x < std::min(size, 20); ++x) {
-                row.push_back(createTile(board.at(x, y), x, y, size));
-            }
-            if (size > 20) {
-                row.push_back(text("...") | dim);
-            }
-            rows.push_back(hbox(std::move(row)));
-        }
-
-        if (size > 20) {
-            rows.push_back(text("...") | dim);
-        }
-
-        return vbox(std::move(rows)) | borderStyled(ROUNDED);
-    } else {
-        Elements rows;
-        for (int y = 0; y < size; ++y) {
-            Elements row;
-            for (int x = 0; x < size; ++x) {
-                row.push_back(createTile(board.at(x, y), x, y, size));
-            }
-            rows.push_back(hbox(std::move(row)));
-        }
-        return vbox(std::move(rows)) | borderStyled(ROUNDED);
-    }
-}
-
-Element TuiRenderer::createStatsPanel(const GameStats& stats, double heuristicValue, int boardSize) const {
-    Elements statsElements;
-
-    statsElements.push_back(text("=== STATYSTYKI ===") | bold | color(Color::Cyan));
-    statsElements.push_back(separator());
-
-    statsElements.push_back(hbox({
-        text("Ruchy: ") | bold,
-        text(std::to_string(stats.movesCount.get())) | color(Color::Yellow)
-    }));
-
-    statsElements.push_back(hbox({
-        text("Cofnięcia: ") | bold,
-        text(std::to_string(stats.undoCount.get())) | color(Color::Yellow)
-    }));
-
-    statsElements.push_back(hbox({
-        text("Poprawne kafelki: ") | bold,
-        text(std::to_string(stats.correctTiles.get()) + " / " +
-             std::to_string(boardSize * boardSize)) | color(Color::Green)
-    }));
-
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(2) << heuristicValue;
-    statsElements.push_back(hbox({
-        text("Heurystyka: ") | bold,
-        text(oss.str()) | color(Color::Magenta)
-    }));
-
-    return vbox(std::move(statsElements)) | size(WIDTH, GREATER_THAN, 30);
-}
 
 Element TuiRenderer::createStatsPanel() const {
     Elements stats;
@@ -169,17 +82,6 @@ Element TuiRenderer::createStatsPanel() const {
     return vbox(std::move(stats)) | border | borderStyled(ROUNDED) | size(WIDTH, GREATER_THAN, 30);
 }
 
-Element TuiRenderer::createMessagePanel(const std::string& message) const {
-    if (message.empty()) {
-        return text("");
-    }
-
-    return text(message) |
-           bgcolor(Color::Blue) |
-           color(Color::White) |
-           bold;
-}
-
 Element TuiRenderer::createMessagePanel() const {
     if (lastMessage_.empty()) {
         return text("");
@@ -193,28 +95,12 @@ Element TuiRenderer::createMessagePanel() const {
            bold;
 }
 
-Element TuiRenderer::createInputPanel(InputMode mode, const std::string& buffer) const {
-    if (mode == InputMode::None) {
-        return text("");
-    }
-
-    std::string modeLabel = (mode == InputMode::Save) ? "Zapisz:" : "Wczytaj:";
-
-    return hbox({
-        text(modeLabel) | bold,
-        text(" [") | dim,
-        text(buffer) | bgcolor(Color::White) | color(Color::Black),
-        text("]") | dim
-    });
-}
-
 Element TuiRenderer::createControlsPanel() const {
     return text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new |  Q - quit") |
            dim | center;
 }
 
 Element TuiRenderer::createGameElement(const PuzzleViewState& state) {
-
     lastMovesCount_ = state.stats.movesCount.get();
     lastUndoCount_ = state.stats.undoCount.get();
     lastCorrectTiles_ = state.stats.correctTiles.get();
@@ -222,35 +108,9 @@ Element TuiRenderer::createGameElement(const PuzzleViewState& state) {
     lastMessage_ = state.statusMessage;
     hintPosition_ = state.hintPosition;
 
-    const int boardSize = state.board.getSize();
+    tileRenderer_->setHintPosition(state.hintPosition);
 
-    Element gridElement = createGrid(state.board);
-    Element statsElement = createStatsPanel(state.stats, state.heuristicValue, boardSize);
-
-    Elements mainContent;
-    mainContent.push_back(text("UKŁADANKI Z LAT DZIECINNYCH") | bold | color(Color::Cyan) | center);
-    mainContent.push_back(separator());
-
-    Elements gameArea;
-    gameArea.push_back(gridElement | flex);
-    gameArea.push_back(separator());
-    gameArea.push_back(statsElement);
-
-    mainContent.push_back(hbox(std::move(gameArea)));
-
-    if (!state.statusMessage.empty()) {
-        mainContent.push_back(createMessagePanel(state.statusMessage));
-    }
-
-    if (state.inputMode != InputMode::None) {
-        mainContent.push_back(separator());
-        mainContent.push_back(createInputPanel(state.inputMode, state.inputBuffer));
-    }
-
-    mainContent.push_back(separator());
-    mainContent.push_back(createControlsPanel());
-
-    return vbox(std::move(mainContent));
+    return layoutComposer_->compose(state);
 }
 
 Element TuiRenderer::createGameElement(const PuzzlePresenter& presenter) {
@@ -262,7 +122,11 @@ void TuiRenderer::render(const Board<int>& board) {
         lastHeuristicValue_ = heuristic_->calculate(board);
     }
 
-    auto gridElement = createGrid(board);
+
+
+    tileRenderer_->setHintPosition(hintPosition_);
+    auto gridRenderer = std::make_shared<GridRenderer>(tileRenderer_);
+    auto gridElement = gridRenderer->render(board);
     auto statsElement = createStatsPanel();
     auto messageElement = createMessagePanel();
 
@@ -315,4 +179,7 @@ void TuiRenderer::refresh() {
 
 void TuiRenderer::setHintHighlight(std::optional<std::pair<int, int>> position) {
     hintPosition_ = position;
+    if (tileRenderer_) {
+        tileRenderer_->setHintPosition(position);
+    }
 }

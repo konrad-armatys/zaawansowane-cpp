@@ -6,6 +6,8 @@
 #include "Board.h"
 #include "GameStats.h"
 #include "PuzzlePresenter.h"
+#include "ui/GameLayoutComposer.h"
+#include "ui/TileRenderer.h"
 #include <memory>
 #include <string>
 #include <optional>
@@ -16,6 +18,7 @@
 /**
  * @brief Implementacja TUI (Text User Interface) dla gry N-Puzzle używająca FTXUI
  *
+ * Fasada delegująca renderowanie do wyspecjalizowanych komponentów UI.
  * Klasa renderuje planszę gry w terminalu z kolorową stylizacją,
  * panelem statystyk oraz obsługą dużych plansz (do 101x101).
  */
@@ -29,32 +32,8 @@ private:
     int boardSize_;
     std::unique_ptr<IHeuristic<int>> heuristic_;
     std::optional<std::pair<int, int>> hintPosition_;
-
-    /**
-     * @brief Tworzy element DOM dla pojedynczego kafelka
-     * @param value Wartość kafelka
-     * @param x Współrzędna x
-     * @param y Współrzędna y
-     * @param boardSize Rozmiar planszy
-     * @return Element DOM reprezentujący kafelek
-     */
-    ftxui::Element createTile(int value, int x, int y, int boardSize) const;
-
-    /**
-     * @brief Tworzy element DOM dla siatki planszy
-     * @param board Plansza do wyrenderowania
-     * @return Element DOM reprezentujący siatkę
-     */
-    ftxui::Element createGrid(const Board<int>& board) const;
-
-    /**
-     * @brief Tworzy element DOM panelu statystyk na podstawie dostarczonych danych
-     * @param stats Statystyki gry
-     * @param heuristicValue Wartość heurystyki
-     * @param boardSize Rozmiar planszy (do obliczenia łącznej liczby pól)
-     * @return Element DOM reprezentujący panel statystyk
-     */
-    ftxui::Element createStatsPanel(const GameStats& stats, double heuristicValue, int boardSize) const;
+    std::shared_ptr<GameLayoutComposer> layoutComposer_;
+    std::shared_ptr<TileRenderer> tileRenderer_;
 
     /**
      * @brief Tworzy element DOM panelu statystyk (używa ostatnio zapamiętanych wartości)
@@ -63,25 +42,10 @@ private:
     ftxui::Element createStatsPanel() const;
 
     /**
-     * @brief Tworzy element DOM dla wiadomości statusowej
-     * @param message Treść wiadomości
-     * @return Element DOM reprezentujący wiadomość
-     */
-    ftxui::Element createMessagePanel(const std::string& message) const;
-
-    /**
      * @brief Tworzy element DOM dla wiadomości (używa ostatnio zapamiętanej wartości)
      * @return Element DOM reprezentujący wiadomość
      */
     ftxui::Element createMessagePanel() const;
-
-    /**
-     * @brief Tworzy element DOM pola wprowadzania ścieżki pliku (save/load)
-     * @param mode Aktualny tryb wprowadzania
-     * @param buffer Zawartość bufora wprowadzania
-     * @return Element DOM reprezentujący pole wprowadzania (pusty, gdy tryb None)
-     */
-    ftxui::Element createInputPanel(InputMode mode, const std::string& buffer) const;
 
     /**
      * @brief Tworzy element DOM z tekstem pomocy sterowania

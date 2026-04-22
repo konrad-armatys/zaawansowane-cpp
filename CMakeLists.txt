@@ -25,7 +25,12 @@ FetchContent_Declare(ftxui
   GIT_SHALLOW    TRUE
   EXCLUDE_FROM_ALL
 )
-FetchContent_MakeAvailable(ftxui)
+FetchContent_Declare(googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.14.0
+  GIT_PROGRESS   TRUE
+)
+FetchContent_MakeAvailable(ftxui googletest)
 # ------------------------------------------------------------------------------
 
 # --- Common libraries ---------------------------------------------------------
@@ -44,8 +49,17 @@ target_include_directories(core_logic PRIVATE ${COMMON_INCLUDE_DIR})
 add_library(tui_lib STATIC
   src/TuiRenderer.cpp
   src/PuzzlePresenter.cpp
+  src/ui/TileRenderer.cpp
+  src/ui/GridRenderer.cpp
+  src/ui/StatsPanelRenderer.cpp
+  src/ui/MessagePanelRenderer.cpp
+  src/ui/ControlsPanelRenderer.cpp
+  src/ui/GameLayoutComposer.cpp
 )
-target_include_directories(tui_lib PRIVATE ${COMMON_INCLUDE_DIR})
+target_include_directories(tui_lib
+  PRIVATE ${COMMON_INCLUDE_DIR}
+  PUBLIC include
+)
 target_link_libraries(tui_lib
   PUBLIC ftxui::screen
   PUBLIC ftxui::dom
@@ -103,6 +117,38 @@ add_executable(test-tuirenderer tests/test_tuirenderer.cpp $<TARGET_OBJECTS:core
 target_include_directories(test-tuirenderer PRIVATE ${COMMON_INCLUDE_DIR})
 target_link_libraries(test-tuirenderer PRIVATE tui_lib)
 add_test(NAME TestTuiRenderer COMMAND test-tuirenderer)
+
+add_executable(test-ui-components tests/test_ui_components.cpp $<TARGET_OBJECTS:core_logic>)
+target_include_directories(test-ui-components PRIVATE ${COMMON_INCLUDE_DIR})
+target_link_libraries(test-ui-components PRIVATE tui_lib)
+add_test(NAME TestUIComponents COMMAND test-ui-components)
+
+add_executable(test-tile-renderer tests/test_tile_renderer.cpp $<TARGET_OBJECTS:core_logic>)
+target_include_directories(test-tile-renderer PRIVATE ${COMMON_INCLUDE_DIR})
+target_link_libraries(test-tile-renderer
+  PRIVATE tui_lib
+  PRIVATE gtest_main
+  PRIVATE gmock
+)
+add_test(NAME TestTileRenderer COMMAND test-tile-renderer)
+
+add_executable(test-grid-renderer tests/test_grid_renderer.cpp $<TARGET_OBJECTS:core_logic>)
+target_include_directories(test-grid-renderer PRIVATE ${COMMON_INCLUDE_DIR})
+target_link_libraries(test-grid-renderer
+  PRIVATE tui_lib
+  PRIVATE gtest_main
+  PRIVATE gmock
+)
+add_test(NAME TestGridRenderer COMMAND test-grid-renderer)
+
+add_executable(test-game-layout-composer tests/test_game_layout_composer.cpp $<TARGET_OBJECTS:core_logic>)
+target_include_directories(test-game-layout-composer PRIVATE ${COMMON_INCLUDE_DIR})
+target_link_libraries(test-game-layout-composer
+  PRIVATE tui_lib
+  PRIVATE gtest_main
+  PRIVATE gmock
+)
+add_test(NAME TestGameLayoutComposer COMMAND test-game-layout-composer)
 
 # --- Debug targets -----------------------------------------------------------
 add_executable(debug-moveadvisor tests/debug_moveadvisor.cpp)
