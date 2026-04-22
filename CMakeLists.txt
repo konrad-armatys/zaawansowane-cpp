@@ -162,37 +162,6 @@ target_include_directories(debug-moveadvisor-verbose PRIVATE ${COMMON_INCLUDE_DI
 add_executable(find-two-move-board tests/find_two_move_board.cpp)
 target_include_directories(find-two-move-board PRIVATE ${COMMON_INCLUDE_DIR})
 
-# --- Examples -----------------------------------------------------------------
-add_executable(example-heuristics examples/example_heuristics.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-heuristics PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-moveadvisor examples/example_moveadvisor.cpp)
-target_include_directories(example-moveadvisor PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-undoredomanager examples/example_undoredomanager.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-undoredomanager PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-gamesaver examples/example_gamesaver.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-gamesaver PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-custom-tile examples/example_custom_tile.cpp)
-target_include_directories(example-custom-tile PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-textgamesaver examples/example_textgamesaver.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-textgamesaver PRIVATE ${COMMON_INCLUDE_DIR})
-
-add_executable(example-puzzlepresenter examples/example_puzzlepresenter.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-puzzlepresenter PRIVATE ${COMMON_INCLUDE_DIR})
-target_link_libraries(example-puzzlepresenter PRIVATE tui_lib)
-
-add_executable(example-tuirenderer examples/example_tuirenderer.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-tuirenderer PRIVATE ${COMMON_INCLUDE_DIR})
-target_link_libraries(example-tuirenderer PRIVATE tui_lib)
-
-add_executable(example-interactive-tui examples/example_interactive_tui.cpp $<TARGET_OBJECTS:core_logic>)
-target_include_directories(example-interactive-tui PRIVATE ${COMMON_INCLUDE_DIR})
-target_link_libraries(example-interactive-tui PRIVATE tui_lib)
-
 if (EMSCRIPTEN)
   string(APPEND CMAKE_CXX_FLAGS " -s USE_PTHREADS")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " -s ASYNCIFY")

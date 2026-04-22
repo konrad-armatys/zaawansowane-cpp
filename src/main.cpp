@@ -56,7 +56,6 @@ private:
             if (event == ftxui::Event::Character('v') || event == ftxui::Event::Character('V')) { presenter_.beginSaveMode();  return true; }
             if (event == ftxui::Event::Character('l') || event == ftxui::Event::Character('L')) { presenter_.beginLoadMode();  return true; }
             if (event == ftxui::Event::Character('n') || event == ftxui::Event::Character('N')) { presenter_.shuffle();        return true; }
-            if (event == ftxui::Event::Character('t') || event == ftxui::Event::Character('T')) { presenter_.reset();          return true; }
 
             return false;
         });
