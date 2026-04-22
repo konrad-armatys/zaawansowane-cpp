@@ -259,12 +259,6 @@ GameStats& PuzzleEngine<T>::getStats() noexcept {
 
 template <typename T>
 requires std::copyable<T>
-void PuzzleEngine<T>::reset(const T& emptyValue) {
-    shuffle(emptyValue);
-}
-
-template <typename T>
-requires std::copyable<T>
 std::pair<int, int> PuzzleEngine<T>::getEmptyPosition() const noexcept {
     return {emptyX_, emptyY_};
 }

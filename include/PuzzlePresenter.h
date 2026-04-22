@@ -165,11 +165,6 @@ public:
     void shuffle();
 
     /**
-     * @brief Resetuje grę do stanu początkowego
-     */
-    void reset();
-
-    /**
      * @brief Oblicza sugerowany ruch przy użyciu MoveAdvisor i ustawia podświetlenie
      * @param advisor Referencja do MoveAdvisor używanego do wyznaczenia ruchu
      */

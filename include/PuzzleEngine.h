@@ -129,12 +129,6 @@ public:
     GameStats& getStats() noexcept;
 
     /**
-     * @brief Resetuje grę do stanu początkowego
-     * @param emptyValue Wartość reprezentująca puste pole
-     */
-    void reset(const T& emptyValue = T{});
-
-    /**
      * @brief Pobiera pozycję pustego pola
      * @return Para współrzędnych (x, y)
      */

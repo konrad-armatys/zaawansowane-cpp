@@ -170,14 +170,6 @@ void PuzzlePresenter::shuffle() {
     notifyChanged();
 }
 
-void PuzzlePresenter::reset() {
-    hintPosition_ = std::nullopt;
-    engine_.reset(0);
-    undoRedoManager_.clear();
-    statusMessage_ = "Gra zresetowana";
-    notifyChanged();
-}
-
 void PuzzlePresenter::hint(const MoveAdvisor<int>& advisor) {
     auto [emptyX, emptyY] = engine_.getEmptyPosition();
     auto suggestion = advisor.suggestMove(engine_.getBoard(), emptyX, emptyY);

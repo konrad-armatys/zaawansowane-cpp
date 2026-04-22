@@ -209,7 +209,7 @@ Element TuiRenderer::createInputPanel(InputMode mode, const std::string& buffer)
 }
 
 Element TuiRenderer::createControlsPanel() const {
-    return text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new | T - reset | Q - quit") |
+    return text("Sterowanie: ↑↓←→/WSAD - ruch | U - undo | R - redo | H - hint | V - save | L - load | N - new |  Q - quit") |
            dim | center;
 }
 

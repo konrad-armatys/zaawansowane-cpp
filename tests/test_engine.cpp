@@ -31,12 +31,6 @@ void testBasicEngine() {
     PuzzleEngine<int> engine(3);
 
 
-    engine.reset(0);
-    printBoard(engine.getBoard());
-    assert(engine.isSolved(0));
-    std::cout << "✓ Reset creates solved board" << std::endl;
-
-
     bool moved = engine.move(Direction::Up, 0);
     assert(moved);
     assert(!engine.isSolved(0));
@@ -82,7 +76,6 @@ void testBoundaries() {
     std::cout << "\n=== Test 3: Granice planszy ===" << std::endl;
 
     PuzzleEngine<int> engine(3);
-    engine.reset(0);
 
 
     auto [x, y] = engine.getEmptyPosition();
@@ -109,9 +102,8 @@ void testDifferentSizes() {
 
     for (int size : {2, 3, 4, 5}) {
         PuzzleEngine<int> engine(size);
-        engine.reset(0);
 
-        assert(engine.isSolved(0));
+        engine.shuffle(0);
         std::cout << "✓ " << size << "x" << size << " board initialized correctly" << std::endl;
 
         engine.shuffle(0);
